@@ -6,9 +6,9 @@ echo "######  1.Stopping containers..."
 docker container stop $(docker container ls -a -q)
 
 echo "######  2.Create backup of persistent folder..."
-mkdir --p ./backup
-tar czfP ./backup/$(date +%Y%m%d-%H%M%S)_persistent_folder.tar.gz $TDS_VOLUMEDIR/
-rm -r $TDS_VOLUMEDIR
+sudo mkdir --p ./backup
+sudo tar czfP ./backup/$(date +%Y%m%d-%H%M%S)_persistent_folder.tar.gz $TDS_VOLUMEDIR/
+sudo rm -r $TDS_VOLUMEDIR
 
 
 echo "######  3.Cleanup containers, networks and volumes.."
