@@ -6,7 +6,7 @@ services:
     image: portainer/portainer:latest
     container_name: "portainer"
     restart: always
-    command: -H unix:///var/run/docker.sock --logo "${TDS_LOGOURL}"
+    command: -H unix:///var/run/docker.sock --logo "${TDS_BRANDING_LOGO_URL}"
     networks:
       private:
         aliases:

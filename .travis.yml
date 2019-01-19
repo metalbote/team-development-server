@@ -25,6 +25,4 @@ script:
 after_script:
   - bash destroy-environment.sh
 
-after_failure:
-  - cat install.log
 
