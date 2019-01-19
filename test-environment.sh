@@ -60,6 +60,15 @@ else
   STATUS=1
 fi
 
+# mailhog
+if docker ps --filter="name=mailhog" -q; then
+  echo "Mailhog is running!"
+  STATUS=0
+else
+  echo "Mailhog is NOT running."
+  STATUS=1
+fi
+
 echo "######  3.Are all dockers reachable via http?"
 
 # Proxy
@@ -86,6 +95,15 @@ if curl -s http://gitea.$TDS_DOMAINNAME | grep -q '<meta name="author" content="
   STATUS=0
 else
   echo "Gitea is NOT reachable!"
+  STATUS=1
+fi
+
+# Mailhog
+if curl -s http://mail.$TDS_DOMAINNAME | grep -q '<img src="images/hog.png" height="20" alt="MailHog">'; then
+  echo "Mailhog is reachable!"
+  STATUS=0
+else
+  echo "Mailhog is NOT reachable!"
   STATUS=1
 fi
 
