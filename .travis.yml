@@ -20,7 +20,7 @@ install:
   - bash init-environment.sh
 
 script:
-  - bash test.sh
+  - bash test-environment.sh
 
 after_script:
   - bash destroy-environment.sh
