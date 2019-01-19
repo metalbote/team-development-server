@@ -53,8 +53,11 @@ sudo sed -i "/$REMHOSTNAME/d" /etc/hosts
 REMHOSTNAME="gitea.$TDS_DOMAINNAME git.$TDS_DOMAINNAME gitea git"
 sudo sed -i "/$REMHOSTNAME/d" /etc/hosts
 
-# Gitea
+# Mailhog
 REMHOSTNAME="mail.$TDS_DOMAINNAME mail"
 sudo sed -i "/$REMHOSTNAME/d" /etc/hosts
-echo "######  Finished"
 
+# phpMyAdmin
+REMHOSTNAME="pma.$TDS_DOMAINNAME pma"
+sudo sed -i "/$REMHOSTNAME/d" /etc/hosts
+echo "######  Finished"

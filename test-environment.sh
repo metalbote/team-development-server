@@ -69,6 +69,15 @@ else
   STATUS=1
 fi
 
+# phpMyAdmin
+if docker ps --filter="name=pma" -q; then
+  echo "phpMyAdmin is running!"
+  STATUS=0
+else
+  echo "phpMyAdmin is NOT running."
+  STATUS=1
+fi
+
 echo "######  3.Are all dockers reachable via http?"
 
 # Proxy
@@ -104,6 +113,15 @@ if curl -s http://mail.$TDS_DOMAINNAME | grep -q '<img src="images/hog.png" heig
   STATUS=0
 else
   echo "Mailhog is NOT reachable!"
+  STATUS=1
+fi
+
+# phpMyAdmin
+if curl -s http://pma.$TDS_DOMAINNAME | grep -q '<a href="./url.php?url=https%3A%2F%2Fwww.phpmyadmin.net%2F" target="_blank" rel="noopener noreferrer" class="logo">'; then
+  echo "phpMyAdmin is reachable!"
+  STATUS=0
+else
+  echo "phpMyAdmin is NOT reachable!"
   STATUS=1
 fi
 

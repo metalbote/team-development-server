@@ -47,9 +47,14 @@ docker-compose -f ./services/gitea.docker-compose.yml up -d
 ADDHOSTNAME="gitea.$TDS_DOMAINNAME git.$TDS_DOMAINNAME gitea git"
 printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
 
-echo "######  5.Create and start mailcatcher container -> mailhog"
+echo "######  6.Create and start mailcatcher container -> mailhog"
 docker-compose -f ./services/mailhog.docker-compose.yml up -d
 ADDHOSTNAME="mail.$TDS_DOMAINNAME mail"
+printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
+
+echo "######  7.Create and start phpMyAdmin container"
+docker-compose -f ./services/pma.docker-compose.yml up -d
+ADDHOSTNAME="pma.$TDS_DOMAINNAME pma"
 printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
 
 
