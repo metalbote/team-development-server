@@ -16,7 +16,7 @@ sudo cp -r ./config/traefik $TDS_VOLUMEDIR/.config/
 
 
 echo "######  3.Create and start proxy container -> traefik"
-docker-compose -f ./services/traefik.docker-compose.yml up -d &>> ./install.log
+docker-compose -f ./services/traefik.docker-compose.yml up -d
 
 
 echo "######  Cleanup installation environment"
