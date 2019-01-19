@@ -18,12 +18,12 @@ before_install:
 
 install:
   - bash init-environment.sh
-  - docker ps
 
+script:
+  - docker ps --filter="name=proxy" -q
 
 after_script:
   - bash destroy-environment.sh
-
 
 after_failure:
   - cat install.log
