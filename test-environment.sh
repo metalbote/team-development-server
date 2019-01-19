@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 echo "######  1.Preparing environment..."
+
 sleep 5
 source .env
 
