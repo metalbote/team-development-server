@@ -1,3 +1,6 @@
+os: linux
+dist: xenial
+
 language: bash
 
 sudo: required
@@ -12,30 +15,6 @@ addons:
 
 before_install:
   - sudo apt-get update
+  - docker --version
   - docker ps
 
-install:
-  - bash init-environment.sh
-  - mkdir -p selenium
-  - >
-    wget -c -O selenium/selenium-server-standalone-2.53.0.jar \
-    http://selenium-release.storage.googleapis.com/2.53/selenium-server-standalone-2.53.0.jar
-
-before_script:
-  - >
-    /usr/bin/xvfb-run \
-     java -jar selenium/selenium-server-standalone-2.53.0.jar > selenium.log &
-
-script:
-  - ./tests/test.sh
-
-after_script:
-  - bash destroy-environment.sh
-
-after_failure:
-  - cat install.log
-  - cat selenium.log
-
-cache:
-  directories:
-    - selenium
