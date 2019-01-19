@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source ../.env
+source .env
 
 export TDS_DOMAINNAME=$TDS_DOMAINNAME
 export TDS_VOLUMEDIR=$TDS_VOLUMEDIR
