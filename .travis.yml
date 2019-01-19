@@ -1,6 +1,10 @@
+language: bash
 sudo: required
 services:
   - docker
-language: bash
-script:
+
+install:
   - bash init-environment.sh
+
+script:
+  - docker ps | grep proxy
