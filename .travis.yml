@@ -20,7 +20,8 @@ install:
   - bash init-environment.sh
 
 script:
-  - docker ps --filter="name=proxy" -q
+  - docker ps --filter="name=proxy" -q >> test.log
+  - bash tests/test.sh
 
 after_script:
   - bash destroy-environment.sh

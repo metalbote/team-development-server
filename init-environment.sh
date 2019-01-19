@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 
-source ./config/services.env
+source .env
 
 export TDS_DOMAINNAME=$TDS_DOMAINNAME
 export TDS_VOLUMEDIR=$TDS_VOLUMEDIR
+
+## Get main ip
+LOCAL_IPS=$(hostname -I)
+LOCAL_IPAR=($LOCAL_IPS)
+IP=${LOCAL_IPAR[0]}
 
 
 touch ./install.log
@@ -17,7 +22,8 @@ sudo cp -r ./config/traefik $TDS_VOLUMEDIR/.config/
 
 echo "######  3.Create and start proxy container -> traefik"
 docker-compose -f ./services/traefik.docker-compose.yml up -d
-
+ADDHOSTNAME="proxy.$TDS_DOMAINNAME proxy"
+printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
 
 echo "######  Cleanup installation environment"
 unset TDS_DOMAINNAME

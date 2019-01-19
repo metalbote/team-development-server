@@ -2,6 +2,7 @@ version: "3.6"
 services:
 
   traefik:
+    env_file: ../.env
     image: traefik:latest
     hostname: proxy
     domainname: ${TDS_DOMAINNAME}
