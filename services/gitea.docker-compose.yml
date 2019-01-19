@@ -2,6 +2,7 @@ version: "3.6"
 services:
 
   gitea:
+    env_file: ../.env
     image: gitea/gitea:latest
     container_name: "gitea"
     domainname: ${TDS_DOMAINNAME}

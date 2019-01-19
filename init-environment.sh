@@ -28,6 +28,7 @@ IP=${LOCAL_IPAR[0]}
 
 echo "######  2.Creating persistent config storage in $TDS_VOLUMEDIR"
 sudo mkdir --p $TDS_VOLUMEDIR/.config
+sudo mkdir --p $TDS_VOLUMEDIR/.mails
 sudo mkdir --p $TDS_GIT_REPO_DIR
 sudo cp -r $TDS_CONFIG_DIR $TDS_VOLUMEDIR/.config/
 
@@ -44,6 +45,11 @@ printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
 echo "######  5.Create and start git container -> gitea"
 docker-compose -f ./services/gitea.docker-compose.yml up -d
 ADDHOSTNAME="gitea.$TDS_DOMAINNAME git.$TDS_DOMAINNAME gitea git"
+printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
+
+echo "######  5.Create and start mailcatcher container -> mailhog"
+docker-compose -f ./services/mailhog.docker-compose.yml up -d
+ADDHOSTNAME="mail.$TDS_DOMAINNAME mail"
 printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
 
 

@@ -81,7 +81,7 @@ else
 fi
 
 # Gitea
-if curl -s http://gitea.$TDS_DOMAINNAME | grep -q '<meta name="author" content="Gitea'; then
+if curl -s http://gitea.$TDS_DOMAINNAME | grep -q '<meta name="author" content="Gitea - Git with a cup of tea" />'; then
   echo "Gitea is reachable!"
   STATUS=0
 else

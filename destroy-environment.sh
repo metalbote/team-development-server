@@ -52,5 +52,9 @@ sudo sed -i "/$REMHOSTNAME/d" /etc/hosts
 # Gitea
 REMHOSTNAME="gitea.$TDS_DOMAINNAME git.$TDS_DOMAINNAME gitea git"
 sudo sed -i "/$REMHOSTNAME/d" /etc/hosts
+
+# Gitea
+REMHOSTNAME="mail.$TDS_DOMAINNAME mail"
+sudo sed -i "/$REMHOSTNAME/d" /etc/hosts
 echo "######  Finished"
 
