@@ -7,6 +7,7 @@ source .env
 
 export TDS_BRANDING_LOGO_URL=$TDS_BRANDING_LOGO_URL
 export TDS_BRANDING_COMPANY_NAME=$TDS_BRANDING_COMPANY_NAME
+export TDS_BRANDING_INFO_EMAIL=$TDS_BRANDING_INFO_EMAIL
 
 export TDS_CONFIG_DIR=$TDS_CONFIG_DIR
 export TDS_VOLUMEDIR=$TDS_VOLUMEDIR
@@ -23,6 +24,8 @@ export TDS_GIT_USER_UID=$TDS_GIT_USER_UID
 export TDS_GIT_USER_GID=$TDS_GIT_USER_GID
 export TDS_GIT_REPO_DIR=$TDS_GIT_REPO_DIR
 
+export TDS_DEVSHOP_SSHPORT=$TDS_DEVSHOP_SSHPORT
+
 ## Get main ip
 LOCAL_IPS=$(hostname -I)
 LOCAL_IPAR=($LOCAL_IPS)
@@ -32,6 +35,9 @@ echo "######  2.Creating persistent storage in $TDS_VOLUMEDIR and copy configura
 ## Shared config and backup folder
 sudo mkdir --p $TDS_BACKUPDIR
 sudo mkdir --p $TDS_VOLUMEDIR/.config/php
+sudo mkdir --p $TDS_VOLUMEDIR/.config/mysql
+
+
 ## traefik
 sudo mkdir --p $TDS_VOLUMEDIR/traefik
 sudo cp -r $TDS_CONFIG_DIR/traefik $TDS_VOLUMEDIR
@@ -46,6 +52,16 @@ sudo cp -r $TDS_CONFIG_DIR/gitea $TDS_VOLUMEDIR
 sudo mkdir --p $TDS_VOLUMEDIR/mailhog
 sudo cp -r $TDS_CONFIG_DIR/mailhog $TDS_VOLUMEDIR
 sudo echo "sendmail_path = /usr/sbin/sendmail -S mail.$TDS_DOMAINNAME:1025" > $TDS_VOLUMEDIR/.config/php/php-ext-mailhog.ini
+## devshop
+sudo mkdir --p $TDS_VOLUMEDIR/devshop
+sudo cp -r $TDS_CONFIG_DIR/devshop $TDS_VOLUMEDIR
+
+## custom mysql password not working
+#sudo echo "[client]" > $TDS_VOLUMEDIR/devshop/data/.my.cnf
+#sudo echo "user=root" >> $TDS_VOLUMEDIR/devshop/data/.my.cnf
+#sudo echo "password=$TDS_MYSQL_ROOT_PASSWORD" >> $TDS_VOLUMEDIR/devshop/data/.my.cnf
+#sudo echo "host=localhost" >> $TDS_VOLUMEDIR/devshop/mysql/.my.cnf
+sudo chown -R 1000:1000 $TDS_CONFIG_DIR/devshop
 
 echo "######  3.Add container names to /etc/hosts"
 ## traefik
@@ -63,7 +79,9 @@ printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
 ## phpMyAdmin
 ADDHOSTNAME="pma.$TDS_DOMAINNAME pma"
 printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
-
+## devshop
+ADDHOSTNAME="devshop.$TDS_DOMAINNAME devshop"
+printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
 echo "######  3.Create and start containers"
 docker-compose up -d
 

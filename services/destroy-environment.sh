@@ -60,4 +60,8 @@ sudo sed -i "/$REMHOSTNAME/d" /etc/hosts
 # phpMyAdmin
 REMHOSTNAME="pma.$TDS_DOMAINNAME pma"
 sudo sed -i "/$REMHOSTNAME/d" /etc/hosts
+
+# devshop
+REMHOSTNAME="devshop.$TDS_DOMAINNAME devshop"
+sudo sed -i "/$REMHOSTNAME/d" /etc/hosts
 echo "######  Finished"

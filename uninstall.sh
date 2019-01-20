@@ -7,6 +7,7 @@ source .env
 
 export TDS_BRANDING_LOGO_URL=$TDS_BRANDING_LOGO_URL
 export TDS_BRANDING_COMPANY_NAME=$TDS_BRANDING_COMPANY_NAME
+export TDS_BRANDING_INFO_EMAIL=$TDS_BRANDING_INFO_EMAIL
 
 export TDS_CONFIG_DIR=$TDS_CONFIG_DIR
 export TDS_VOLUMEDIR=$TDS_VOLUMEDIR
@@ -23,6 +24,8 @@ export TDS_GIT_USER_UID=$TDS_GIT_USER_UID
 export TDS_GIT_USER_GID=$TDS_GIT_USER_GID
 export TDS_GIT_REPO_DIR=$TDS_GIT_REPO_DIR
 
+export TDS_DEVSHOP_SSHPORT=$TDS_DEVSHOP_SSHPORT
+
 ## Get main ip
 LOCAL_IPS=$(hostname -I)
 LOCAL_IPAR=($LOCAL_IPS)
@@ -35,6 +38,7 @@ docker container stop $(docker ps --filter="name=gitea" -q)
 docker container stop $(docker ps --filter="name=giteadb" -q)
 docker container stop $(docker ps --filter="name=mailhog" -q)
 docker container stop $(docker ps --filter="name=pma" -q)
+docker container stop $(docker ps --filter="name=devshop" -q)
 
 echo "######  3.Create complete backup"
 sudo mkdir --p ./backup
@@ -66,5 +70,9 @@ sudo sed -i "/$REMHOSTNAME/d" /etc/hosts
 
 # phpMyAdmin
 REMHOSTNAME="pma.$TDS_DOMAINNAME pma"
+sudo sed -i "/$REMHOSTNAME/d" /etc/hosts
+
+# devshop
+REMHOSTNAME="devshop.$TDS_DOMAINNAME devshop"
 sudo sed -i "/$REMHOSTNAME/d" /etc/hosts
 echo "######  Finished"

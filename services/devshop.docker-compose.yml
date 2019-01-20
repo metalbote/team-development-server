@@ -1,0 +1,58 @@
+version: "3.6"
+services:
+
+  devshop:
+    image: devshop/server
+    container_name: "devshop"
+    domainname: ${TDS_DOMAINNAME}
+    hostname: "devshop"
+    restart: always
+    stop_grace_period: 30s
+    ports:
+      - ${TDS_DEVSHOP_SSHPORT}:22/tcp
+    networks:
+      private:
+        aliases:
+          - dev
+          - devshop
+      public:
+        aliases:
+          - dev.${TDS_DOMAINNAME}
+          - devshop.${TDS_DOMAINNAME}
+    environment:
+      AEGIR_UID: 1000
+      AEGIR_CLIENT_EMAIL: "${TDS_BRANDING_INFO_EMAIL}"
+      AEGIR_DATABASE_SERVER: "localhost"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "devshop-data:/var/aegir"
+      - "devshop-mysql:/var/lib/mysql"
+    labels:
+      traefik.enable: "true"
+      traefik.backend: "devshop"
+      traefik.docker.network: "public"
+      traefik.port: "80"
+      traefik.frontend.rule: "Host: devshop.${TDS_DOMAINNAME}"
+
+volumes:
+  devshop-mysql:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${TDS_VOLUMEDIR}/devshop/mysql
+  devshop-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${TDS_VOLUMEDIR}/devshop/data
+
+networks:
+  public:
+    external:
+      name: public
+  private:
+    external:
+      name: private
+
