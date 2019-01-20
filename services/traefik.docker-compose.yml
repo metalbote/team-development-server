@@ -23,8 +23,8 @@ services:
          - proxy.${TDS_DOMAINNAME}
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "${TDS_VOLUMEDIR}/.config/traefik/traefik.toml:/traefik.toml"
-      - "${TDS_VOLUMEDIR}/.config/traefik/certs/:/certs/"
+      - "${TDS_VOLUMEDIR}/traefik/traefik.toml:/traefik.toml"
+      - "${TDS_VOLUMEDIR}/traefik/certs/:/certs/"
 #     - "${TDS_VOLUMEDIR}/.config/traefik/:/acme.json"
     labels:
       traefik.enable: "true"

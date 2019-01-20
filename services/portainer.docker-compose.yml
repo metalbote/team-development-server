@@ -18,7 +18,7 @@ services:
       TZ: "${TDS_TIMEZONE}"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - "${TDS_VOLUMEDIR}/.config/portainer/data:/data"
+      - "${TDS_VOLUMEDIR}/portainer/data:/data"
     labels:
       traefik.enable: "true"
       traefik.backend: "portainer"
