@@ -17,12 +17,12 @@ before_install:
   - sudo apt-get update
 
 install:
-  - bash services/init-environment.sh
+  - bash install.sh
 
 script:
-  - bash services/test-environment.sh
+  - bash tests/run-simple-tests.sh
 
 after_script:
-  - bash services/destroy-environment.sh
+  - bash uninstall.sh
 
 

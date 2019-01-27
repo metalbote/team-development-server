@@ -85,6 +85,10 @@ printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
 echo "######  3.Create and start containers"
 docker-compose up -d
 
+echo "######  4.Setup ssh keys in devshop"
+docker exec -it --user=1000 devshop ssh-keygen -q -t rsa -N "" -f /var/aegir/.ssh/id_rsa
+docker exec -it --user=1000 devshop drush @hostmaster vset devshop_public_key "$(docker exec -it --user=1000 devshop cat /var/aegir/.ssh/id_rsa.pub)" -y --yes
+
 echo "######  Cleanup installation environment"
 
 unset TDS_BRANDING_COMPANY_NAME
