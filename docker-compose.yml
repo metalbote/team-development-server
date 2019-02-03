@@ -8,10 +8,11 @@ services:
     domainname: ${TDS_DOMAINNAME}
     container_name: "proxy"
     restart: always
-    command: --api --docker
+    command: --web --api --docker --docker.domain=entwicklung
     ports:
       - 80:80/tcp
       - 443:443/tcp
+      - 8080:8080
     networks:
       private:
         aliases:
@@ -24,8 +25,12 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "${TDS_VOLUMEDIR}/traefik/traefik.toml:/traefik.toml"
+      - "${TDS_VOLUMEDIR}/traefik/servers.toml:/servers.toml"
+      - "${TDS_VOLUMEDIR}/traefik/logs/access_traefik.log:/var/log/access_traefik.log"
+      - "${TDS_VOLUMEDIR}/traefik/logs/traefik.log:/var/log/traefik.log"
       - "${TDS_VOLUMEDIR}/traefik/certs/:/certs/"
-    #     - "${TDS_VOLUMEDIR}/.config/traefik/:/acme.json"
+   #   - "${TDS_VOLUMEDIR}/traefik/acme.json:/acme.json"
+
     labels:
       traefik.enable: "true"
       traefik.backend: "proxy"
@@ -48,9 +53,12 @@ services:
           - portainer.${TDS_DOMAINNAME}
     environment:
       TZ: "${TDS_TIMEZONE}"
+    depends_on:
+      - traefik
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "${TDS_VOLUMEDIR}/portainer/data:/data"
+      - "${TDS_VOLUMEDIR}/portainer/config/templates.json:/templates.json"
     labels:
       traefik.enable: "true"
       traefik.backend: "portainer"
@@ -73,6 +81,8 @@ services:
         aliases:
           - mailhog.${TDS_DOMAINNAME}
           - mail.${TDS_DOMAINNAME}
+    depends_on:
+      - traefik
     volumes:
       - "${TDS_VOLUMEDIR}/mailhog/mails:/maildir"
     labels:
@@ -120,6 +130,9 @@ services:
       USER_UID: ${TDS_GIT_USER_UID}
       USER_GID: ${TDS_GIT_USER_GID}
     depends_on:
+      - traefik
+      - giteadb
+    links:
       - giteadb
     volumes:
       - "${TDS_VOLUMEDIR}/gitea/data:/data"
@@ -154,6 +167,69 @@ services:
     volumes:
       - "${TDS_VOLUMEDIR}/gitea/mysql:/var/lib/mysql"
 
+  devshop:
+    image: aegir/hostmaster
+    container_name: "devshop"
+    domainname: ${TDS_DOMAINNAME}
+    hostname: "devshop"
+    restart: always
+    stop_grace_period: 30s
+    ports:
+      - ${TDS_DEVSHOP_SSHPORT}:22/tcp
+    networks:
+      private:
+        aliases:
+          - dev
+          - devshop
+      public:
+        aliases:
+          - dev.${TDS_DOMAINNAME}
+          - devshop.${TDS_DOMAINNAME}
+    environment:
+      AEGIR_VERSION: "7.x-3.170"
+      PROVISION_VERSION: "7.x-3.172"
+      AEGIR_CLIENT_EMAIL: "${TDS_BRANDING_INFO_EMAIL}"
+      AEGIR_MAKEFILE: "https://raw.githubusercontent.com/opendevshop/devshop/1.5.0-rc6/build-devmaster.make"
+      AEGIR_PROFILE: "devmaster"
+      AEGIR_HOSTMASTER_ROOT: "/var/aegir/devmaster"
+      AEGIR_UID: 1000
+      AEGIR_DATABASE_SERVER: devshopdb
+      MYSQL_ROOT_PASSWORD: ${TDS_MYSQL_ROOT_PASSWORD}
+    depends_on:
+      - traefik
+      - devshopdb
+    links:
+      - devshopdb
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "${TDS_VOLUMEDIR}/devshop/data:/var/aegir"
+    labels:
+      traefik.enable: "true"
+      traefik.backend: "devshop"
+      traefik.docker.network: "public"
+      traefik.port: "80"
+      #traefik.frontend.rule: "Host: devshop.${TDS_DOMAINNAME}"
+      traefik.frontend.rule: "HostRegexp:{subdomain:.+}.devshop.entwicklung,devshop.entwicklung"
+      traefik.frontend.priority: "1"
+  devshopdb:
+    image: mariadb:latest
+    container_name: "devshopdb"
+    domainname: ${TDS_DOMAINNAME}
+    hostname: "devshopdb"
+    restart: always
+    stop_grace_period: 30s
+    networks:
+      private:
+        aliases:
+          - devshopdb
+      public:
+        aliases:
+          - devshopdb.${TDS_DOMAINNAME}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${TDS_MYSQL_ROOT_PASSWORD}
+    volumes:
+      - "${TDS_VOLUMEDIR}/devshop/mysql:/var/lib/mysql"
+
   pma:
     env_file: .env
     image: phpmyadmin/phpmyadmin:latest
@@ -168,11 +244,15 @@ services:
       public:
         aliases:
           - pma.${TDS_DOMAINNAME}
-    external_links:
+    depends_on:
       - giteadb
+      - devshopdb
+    links:
+      - giteadb
+      - devshopdb
     environment:
       PMA_ABSOLUTE_URI: "http://pma.${TDS_DOMAINNAME}"
-      PMA_HOSTS: "gitdb.${TDS_DOMAINNAME}"
+      PMA_HOSTS: "gitdb,devshopdb"
       PMA_PORT: "3306"
       PHP_UPLOAD_MAX_FILESIZE: "1G"
       PHP_MAX_INPUT_VARS: "1G"
@@ -183,6 +263,7 @@ services:
       traefik.docker.network: "public"
       traefik.port: "80"
       traefik.frontend.rule: "Host:pma.${TDS_DOMAINNAME}"
+
 
 networks:
   public:

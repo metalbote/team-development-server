@@ -1,6 +1,32 @@
+#Traefik Global Configuration
+debug = true
+checkNewVersion = true
 logLevel = "DEBUG"
-defaultEntryPoints = ["https","http"]
 
+[traefikLog]
+filePath = "/var/log/traefik.log"
+
+[accessLog]
+accessLogsFile = "/var/log/access_traefik.log"
+
+#Define the EntryPoint for HTTP and HTTPS
+defaultEntryPoints = ["http","https"]
+
+#Enable Traefik Dashboard on port 8080
+#with basic authentication method
+[web]
+address = ":8080"
+[web.auth.basic]
+users = ["admin:$apr1$iE0pANfc$gobRdp3SqRLrkk9tuy7AT0"]
+
+[docker]
+domain = "entwicklung"
+watch = true
+endpoint = "unix:///var/run/docker.sock"
+exposedbydefault = false
+
+#Define the HTTP port 80 and
+#HTTPS port 443 EntryPoint
 [entryPoints]
   [entryPoints.http]
   address = ":80"
@@ -8,6 +34,19 @@ defaultEntryPoints = ["https","http"]
   address = ":443"
   [entryPoints.https.tls]
     [[entryPoints.https.tls.certificates]]
-      certFile = "/certs/yourcert.crt"
-      keyFile = "/certs/yourcert.key"
+      certFile = "/certs/wildcard.crt"
+      keyFile = "/certs/wildcard.key"
 
+[backends]
+  [backends.cockpit]
+    [backends.cockpit.entwicklung.server]
+      url = "http://192.168.0.99:9090"
+
+[frontends]
+  [frontends.cockpit]
+    backend = "cockpit"
+  [frontends.cockpit.routes.domain]
+    rule = "Host:server.entwicklung"
+
+[file]
+watch = true
