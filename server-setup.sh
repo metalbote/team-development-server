@@ -2,7 +2,7 @@
 
 yum update && yum upgrade
 yum install epel-release
-yum install mc net-tools open-vm-tools wget yum-utils vim cockpit cockpit-packagekit cockpit-storaged cockpit-system git samba-client samba-common cifs-utils
+yum install mc net-tools open-vm-tools wget yum-utils vim cockpit cockpit-packagekit cockpit-storaged cockpit-system git samba-client samba-common cifs-utils httpd-tools
 yum group install "Development Tools"
 yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 yum install docker-ce docker-compose cockpit-docker
