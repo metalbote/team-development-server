@@ -3,7 +3,7 @@
 echo "######  1.Preparing environment..."
 
 sleep 5
-source ../.env
+source .env
 export TDS_BRANDING_LOGO_URL=$TDS_BRANDING_LOGO_URL
 export TDS_BRANDING_COMPANY_NAME=$TDS_BRANDING_COMPANY_NAME
 export TDS_BRANDING_INFO_EMAIL=$TDS_BRANDING_INFO_EMAIL
@@ -93,7 +93,7 @@ fi
 echo "######  3.Are all dockers reachable via http?"
 
 # Proxy
-if curl -s http://proxy.$TDS_DOMAINNAME | grep -q '<a href="/dashboard/">Found</a>'; then
+if curl -s http://proxy.$TDS_DOMAINNAME | cat |  grep -q '<a href="/dashboard/">Found</a>'; then
   echo "Proxy is reachable!"
   STATUS=0
 else
@@ -102,7 +102,7 @@ else
 fi
 
 # Portainer
-if curl -s http://portainer.$TDS_DOMAINNAME | grep -q '<html lang="en" ng-app="portainer">'; then
+if curl -s http://portainer.$TDS_DOMAINNAME | cat |  grep -q '<html lang="en" ng-app="portainer">'; then
   echo "Portainer is reachable!"
   STATUS=0
 else
@@ -111,7 +111,10 @@ else
 fi
 
 # Gitea
-if curl -s http://gitea.$TDS_DOMAINNAME | grep -q '<meta name="author" content="Gitea - Git with a cup of tea" />'; then
+GITEA_INSTALL= curl -s http://gitea.$TDS_DOMAINNAME | cat | grep -q '<meta name="author" content="Gitea - Git with a cup of tea" />';
+GITEA_RUN= curl -s http://gitea.$TDS_DOMAINNAME | cat | grep -q '<a href="/explore">Found</a>';
+
+if $GITEA_RUN || $GITEA_INSTALL; then
   echo "Gitea is reachable!"
   STATUS=0
 else
@@ -120,7 +123,7 @@ else
 fi
 
 # Mailhog
-if curl -s http://mail.$TDS_DOMAINNAME | grep -q '<img src="images/hog.png" height="20" alt="MailHog">'; then
+if curl -s http://mail.$TDS_DOMAINNAME | cat |  grep -q '<img src="images/hog.png" height="20" alt="MailHog">'; then
   echo "Mailhog is reachable!"
   STATUS=0
 else
@@ -129,7 +132,7 @@ else
 fi
 
 # phpMyAdmin
-if curl -s http://pma.$TDS_DOMAINNAME | grep -q '<a href="./url.php?url=https%3A%2F%2Fwww.phpmyadmin.net%2F" target="_blank" rel="noopener noreferrer" class="logo">'; then
+if curl -s http://pma.$TDS_DOMAINNAME | cat |  grep -q '<a href="./url.php?url=https%3A%2F%2Fwww.phpmyadmin.net%2F" target="_blank" rel="noopener noreferrer" class="logo">'; then
   echo "phpMyAdmin is reachable!"
   STATUS=0
 else
@@ -137,8 +140,8 @@ else
   STATUS=1
 fi
 
-# phpMyAdmin
-if curl -s http://devshop.$TDS_DOMAINNAME | grep -q '<a href="./url.php?url=https%3A%2F%2Fwww.phpmyadmin.net%2F" target="_blank" rel="noopener noreferrer" class="logo">'; then
+# devshop
+if curl -s http://devshop.$TDS_DOMAINNAME/user/login | cat |  grep -q '<title>Login | devshop'; then
   echo "devshop is reachable!"
   STATUS=0
 else
