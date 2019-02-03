@@ -15,9 +15,11 @@ addons:
 
 before_install:
   - sudo apt-get update
+  - cp example.env .env
 
 install:
   - bash install.sh
+
 
 script:
   - bash tests/run-simple-tests.sh
