@@ -48,6 +48,7 @@ sudo cp -r $TDS_CONFIG_DIR/portainer $TDS_VOLUMEDIR
 sudo mkdir --p $TDS_GIT_REPO_DIR
 sudo mkdir --p $TDS_VOLUMEDIR/gitea
 sudo cp -r $TDS_CONFIG_DIR/gitea $TDS_VOLUMEDIR
+sudo chown -R TDS_GIT_USER_UID:TDS_GIT_USER_GID $TDS_GIT_REPO_DIR
 ## mailhog
 sudo mkdir --p $TDS_VOLUMEDIR/mailhog
 sudo cp -r $TDS_CONFIG_DIR/mailhog $TDS_VOLUMEDIR
