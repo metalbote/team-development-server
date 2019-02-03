@@ -2,7 +2,7 @@
 
 echo "######  1.Preparing environment..."
 
-sleep 5
+sleep 1m
 source .env
 export TDS_BRANDING_LOGO_URL=$TDS_BRANDING_LOGO_URL
 export TDS_BRANDING_COMPANY_NAME=$TDS_BRANDING_COMPANY_NAME
