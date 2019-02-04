@@ -8,7 +8,7 @@ services:
     domainname: ${TDS_DOMAINNAME}
     container_name: "proxy"
     restart: always
-    command: --web --api --docker --docker.domain=entwicklung
+    command: --api --docker --docker.domain=entwicklung
     ports:
       - 80:80/tcp
       - 443:443/tcp
@@ -25,12 +25,10 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "${TDS_VOLUMEDIR}/traefik/traefik.toml:/traefik.toml"
-      - "${TDS_VOLUMEDIR}/traefik/servers.toml:/servers.toml"
       - "${TDS_VOLUMEDIR}/traefik/logs/access_traefik.log:/var/log/access_traefik.log"
       - "${TDS_VOLUMEDIR}/traefik/logs/traefik.log:/var/log/traefik.log"
-      - "${TDS_VOLUMEDIR}/traefik/certs/:/certs/"
-   #   - "${TDS_VOLUMEDIR}/traefik/acme.json:/acme.json"
-
+      - "${TDS_VOLUMEDIR}/.config/certs/:/certs/"
+    #   - "${TDS_VOLUMEDIR}/traefik/acme.json:/acme.json"
     labels:
       traefik.enable: "true"
       traefik.backend: "proxy"
@@ -105,6 +103,7 @@ services:
     networks:
       private:
         aliases:
+          - gitea.${TDS_DOMAINNAME}
           - gitea
           - git
       public:
@@ -118,7 +117,7 @@ services:
       SSH_PORT: ${TDS_GIT_SSHPORT}
       DISABLE_SSH: "false"
       HTTP_PORT: 3000
-      ROOT_URL: "http://gitea.${TDS_DOMAINNAME}"
+      ROOT_URL: "https://gitea.${TDS_DOMAINNAME}"
       DB_TYPE: mysql
       DB_HOST: gitdb.${TDS_DOMAINNAME}:3306
       DB_NAME: gitea
@@ -140,6 +139,8 @@ services:
     labels:
       traefik.enable: "true"
       traefik.backend: "gitea"
+      traefik.frontend.entryPoints: "https"
+      traefik.frontend.passHostHeader: "true"
       traefik.docker.network: "public"
       traefik.port: "3000"
       traefik.frontend.rule: "Host: gitea.${TDS_DOMAINNAME}"
@@ -156,9 +157,6 @@ services:
       private:
         aliases:
           - gitdb
-      public:
-        aliases:
-          - gitdb.${TDS_DOMAINNAME}
     environment:
       MYSQL_ROOT_PASSWORD: ${TDS_MYSQL_ROOT_PASSWORD}
       MYSQL_USER: ${TDS_MYSQL_GITEAUSER}
@@ -166,6 +164,105 @@ services:
       MYSQL_DATABASE: gitea
     volumes:
       - "${TDS_VOLUMEDIR}/gitea/mysql:/var/lib/mysql"
+
+  pma:
+    env_file: .env
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: "pma"
+    hostname: pma
+    domainname: ${TDS_DOMAINNAME}
+    restart: always
+    networks:
+      private:
+        aliases:
+          - pma
+      public:
+        aliases:
+          - pma.${TDS_DOMAINNAME}
+    depends_on:
+      - giteadb
+      - devshopdb
+    links:
+      - giteadb
+      - devshopdb
+    environment:
+      PMA_ABSOLUTE_URI: "http://pma.${TDS_DOMAINNAME}"
+      PMA_HOSTS: "gitdb,devshopdb"
+      PMA_PORT: "3306"
+      PHP_UPLOAD_MAX_FILESIZE: "1G"
+      PHP_MAX_INPUT_VARS: "1G"
+      MYSQL_ROOT_PASSWORD: ${TDS_MYSQL_ROOT_PASSWORD}
+    labels:
+      traefik.enable: "true"
+      traefik.backend: "pma"
+      traefik.docker.network: "public"
+      traefik.port: "80"
+      traefik.frontend.rule: "Host:pma.${TDS_DOMAINNAME}"
+
+  drone:
+    env_file: .env
+    image: drone/drone:1.0.0-rc.5
+    container_name: "drone"
+    restart: always
+    stop_grace_period: 30s
+    networks:
+      private:
+        aliases:
+          - drone
+      public:
+        aliases:
+          - drone.${TDS_DOMAINNAME}
+          - ci.${TDS_DOMAINNAME}
+    depends_on:
+      - gitea
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "${TDS_VOLUMEDIR}/drone/data:/var/lib/drone/"
+      - "${TDS_VOLUMEDIR}/.config/certs/wildcard.crt:/etc/certs/drone.company.com/wildcard.crt"
+      - "${TDS_VOLUMEDIR}/.config/certs/wildcard.key:/etc/certs/drone.company.com/wildcard.key"
+    environment:
+      - DRONE_GITEA_SERVER=http://gitea.${TDS_DOMAINNAME}:3000
+      - DRONE_GIT_ALWAYS_AUTH=false
+      - DRONE_RUNNER_CAPACITY=2
+      - DRONE_SERVER_HOST=http:/drone.${TDS_DOMAINNAME}
+      - DRONE_SERVER_PROTO=https
+      - DRONE_TLS_CERT=/etc/certs/drone.company.com/wildcard.crt
+      - DRONE_TLS_KEY=/etc/certs/drone.company.com/wildcard.key
+      - DRONE_TLS_AUTOCERT=false
+      - DRONE_USER_CREATE=username:${TDS_DRONE_ADMIN_USER},admin:true
+      - DRONE_LOGS_COLOR=true
+      - DRONE_LOGS_DEBUG=true
+      - DRONE_LOGS_PRETTY=true
+    labels:
+      traefik.enable: "true"
+      traefik.backend: "drone"
+      traefik.docker.network: "public"
+      traefik.port: "80"
+      traefik.frontend.rule: "Host: drone.${TDS_DOMAINNAME}"
+
+  dashboard:
+    image: geerlingguy/drupal-vm
+    container_name: dashboard
+    restart: always
+    stop_grace_period: 30s
+    command: /lib/systemd/systemd
+    privileged: true
+    volumes:
+      - "${TDS_VOLUMEDIR}/dashboard/data:/var/www/drupalvm/drupal:rw,delegated"
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    networks:
+      private:
+        aliases:
+          - dashboard
+      public:
+        aliases:
+          - dashboard.${TDS_DOMAINNAME}
+    labels:
+      traefik.enable: "true"
+      traefik.backend: "dashboard"
+      traefik.docker.network: "public"
+      traefik.port: "80"
+      traefik.frontend.rule: "Host: dashboard.${TDS_DOMAINNAME}"
 
   devshop:
     image: aegir/hostmaster
@@ -211,6 +308,7 @@ services:
       #traefik.frontend.rule: "Host: devshop.${TDS_DOMAINNAME}"
       traefik.frontend.rule: "HostRegexp:{subdomain:.+}.devshop.entwicklung,devshop.entwicklung"
       traefik.frontend.priority: "1"
+
   devshopdb:
     image: mariadb:latest
     container_name: "devshopdb"
@@ -222,48 +320,12 @@ services:
       private:
         aliases:
           - devshopdb
-      public:
-        aliases:
-          - devshopdb.${TDS_DOMAINNAME}
     environment:
       MYSQL_ROOT_PASSWORD: ${TDS_MYSQL_ROOT_PASSWORD}
     volumes:
       - "${TDS_VOLUMEDIR}/devshop/mysql:/var/lib/mysql"
-
-  pma:
-    env_file: .env
-    image: phpmyadmin/phpmyadmin:latest
-    container_name: "pma"
-    hostname: pma
-    domainname: ${TDS_DOMAINNAME}
-    restart: always
-    networks:
-      private:
-        aliases:
-          - pma
-      public:
-        aliases:
-          - pma.${TDS_DOMAINNAME}
-    depends_on:
-      - giteadb
-      - devshopdb
-    links:
-      - giteadb
-      - devshopdb
-    environment:
-      PMA_ABSOLUTE_URI: "http://pma.${TDS_DOMAINNAME}"
-      PMA_HOSTS: "gitdb,devshopdb"
-      PMA_PORT: "3306"
-      PHP_UPLOAD_MAX_FILESIZE: "1G"
-      PHP_MAX_INPUT_VARS: "1G"
-      MYSQL_ROOT_PASSWORD: ${TDS_MYSQL_ROOT_PASSWORD}
     labels:
-      traefik.enable: "true"
-      traefik.backend: "pma"
-      traefik.docker.network: "public"
-      traefik.port: "80"
-      traefik.frontend.rule: "Host:pma.${TDS_DOMAINNAME}"
-
+      traefik.enable: "false"
 
 networks:
   public:
