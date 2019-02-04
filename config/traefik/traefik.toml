@@ -14,13 +14,12 @@ defaultEntryPoints = ["http","https"]
 
 #Enable Traefik Dashboard on port 8080
 #with basic authentication method
-[web]
-address = ":8080"
-[web.auth.basic]
-users = ["admin:$apr1$iE0pANfc$gobRdp3SqRLrkk9tuy7AT0"]
+[api]
+entryPoint = "proxy"
+dashboard = true
+debug = true
 
 [docker]
-domain = "entwicklung"
 watch = true
 endpoint = "unix:///var/run/docker.sock"
 exposedbydefault = false
@@ -30,23 +29,22 @@ exposedbydefault = false
 [entryPoints]
   [entryPoints.http]
   address = ":80"
+
   [entryPoints.https]
   address = ":443"
+
   [entryPoints.https.tls]
     [[entryPoints.https.tls.certificates]]
       certFile = "/certs/wildcard.crt"
       keyFile = "/certs/wildcard.key"
 
-[backends]
-  [backends.cockpit]
-    [backends.cockpit.entwicklung.server]
-      url = "http://192.168.0.99:9090"
-
-[frontends]
-  [frontends.cockpit]
-    backend = "cockpit"
-  [frontends.cockpit.routes.domain]
-    rule = "Host:server.entwicklung"
+  [entryPoints.proxy]
+    address=":8080"
+    [entryPoints.proxy.auth]
+      [entryPoints.proxy.auth.basic]
+        users = [
+         "admin:$apr1$iE0pANfc$gobRdp3SqRLrkk9tuy7AT0"
+        ]
 
 [file]
 watch = true
