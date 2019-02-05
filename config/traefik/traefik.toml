@@ -14,10 +14,10 @@ defaultEntryPoints = ["http","https"]
 
 #Enable Traefik Dashboard on port 8080
 #with basic authentication method
-[api]
-entryPoint = "proxy"
-dashboard = true
-debug = true
+[web]
+address = ":8080"
+[web.auth.basic]
+users = ["admin:$apr1$iE0pANfc$gobRdp3SqRLrkk9tuy7AT0"]
 
 [docker]
 watch = true
@@ -29,6 +29,7 @@ exposedbydefault = false
 [entryPoints]
   [entryPoints.http]
   address = ":80"
+
 
   [entryPoints.https]
   address = ":443"

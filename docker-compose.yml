@@ -8,11 +8,11 @@ services:
     domainname: ${TDS_DOMAINNAME}
     container_name: "proxy"
     restart: always
-    command: --api --docker --docker.domain=entwicklung
+    command: --web --api --docker --docker.domain=entwicklung
     ports:
       - 80:80/tcp
       - 443:443/tcp
-      - 8080:8080
+      - 8080:8080/tcp
     networks:
       private:
         aliases:
@@ -56,7 +56,7 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "${TDS_VOLUMEDIR}/portainer/data:/data"
-      - "${TDS_VOLUMEDIR}/portainer/config/templates.json:/templates.json"
+#     - "${TDS_VOLUMEDIR}/portainer/config/templates.json:/templates.json"
     labels:
       traefik.enable: "true"
       traefik.backend: "portainer"
@@ -225,9 +225,9 @@ services:
       - DRONE_GIT_ALWAYS_AUTH=false
       - DRONE_RUNNER_CAPACITY=2
       - DRONE_SERVER_HOST=http:/drone.${TDS_DOMAINNAME}
-      - DRONE_SERVER_PROTO=https
-      - DRONE_TLS_CERT=/etc/certs/drone.company.com/wildcard.crt
-      - DRONE_TLS_KEY=/etc/certs/drone.company.com/wildcard.key
+      - DRONE_SERVER_PROTO=http
+#      - DRONE_TLS_CERT=/etc/certs/drone.company.com/wildcard.crt
+#      - DRONE_TLS_KEY=/etc/certs/drone.company.com/wildcard.key
       - DRONE_TLS_AUTOCERT=false
       - DRONE_USER_CREATE=username:${TDS_DRONE_ADMIN_USER},admin:true
       - DRONE_LOGS_COLOR=true
@@ -239,76 +239,76 @@ services:
       traefik.docker.network: "public"
       traefik.port: "80"
       traefik.frontend.rule: "Host: drone.${TDS_DOMAINNAME}"
-
-  dashboard:
-    image: geerlingguy/drupal-vm
-    container_name: dashboard
-    restart: always
-    stop_grace_period: 30s
-    command: /lib/systemd/systemd
-    privileged: true
-    volumes:
-      - "${TDS_VOLUMEDIR}/dashboard/data:/var/www/drupalvm/drupal:rw,delegated"
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    networks:
-      private:
-        aliases:
-          - dashboard
-      public:
-        aliases:
-          - dashboard.${TDS_DOMAINNAME}
-    labels:
-      traefik.enable: "true"
-      traefik.backend: "dashboard"
-      traefik.docker.network: "public"
-      traefik.port: "80"
-      traefik.frontend.rule: "Host: dashboard.${TDS_DOMAINNAME}"
-
-  devshop:
-    image: aegir/hostmaster
-    container_name: "devshop"
-    domainname: ${TDS_DOMAINNAME}
-    hostname: "devshop"
-    restart: always
-    stop_grace_period: 30s
-    ports:
-      - ${TDS_DEVSHOP_SSHPORT}:22/tcp
-    networks:
-      private:
-        aliases:
-          - dev
-          - devshop
-      public:
-        aliases:
-          - dev.${TDS_DOMAINNAME}
-          - devshop.${TDS_DOMAINNAME}
-    environment:
-      AEGIR_VERSION: "7.x-3.170"
-      PROVISION_VERSION: "7.x-3.172"
-      AEGIR_CLIENT_EMAIL: "${TDS_BRANDING_INFO_EMAIL}"
-      AEGIR_MAKEFILE: "https://raw.githubusercontent.com/opendevshop/devshop/1.5.0-rc6/build-devmaster.make"
-      AEGIR_PROFILE: "devmaster"
-      AEGIR_HOSTMASTER_ROOT: "/var/aegir/devmaster"
-      AEGIR_UID: 1000
-      AEGIR_DATABASE_SERVER: devshopdb
-      MYSQL_ROOT_PASSWORD: ${TDS_MYSQL_ROOT_PASSWORD}
-    depends_on:
-      - traefik
-      - devshopdb
-    links:
-      - devshopdb
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
-      - "${TDS_VOLUMEDIR}/devshop/data:/var/aegir"
-    labels:
-      traefik.enable: "true"
-      traefik.backend: "devshop"
-      traefik.docker.network: "public"
-      traefik.port: "80"
-      #traefik.frontend.rule: "Host: devshop.${TDS_DOMAINNAME}"
-      traefik.frontend.rule: "HostRegexp:{subdomain:.+}.devshop.entwicklung,devshop.entwicklung"
-      traefik.frontend.priority: "1"
-
+#
+##  dashboard:
+##    image: geerlingguy/drupal-vm
+##    container_name: dashboard
+##    restart: always
+##    stop_grace_period: 30s
+##    command: /lib/systemd/systemd
+##    privileged: true
+##    volumes:
+##      - "${TDS_VOLUMEDIR}/dashboard/data:/var/www/drupalvm/drupal:rw,delegated"
+##      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+##    networks:
+##      private:
+##        aliases:
+##          - dashboard
+##      public:
+##        aliases:
+##          - dashboard.${TDS_DOMAINNAME}
+##    labels:
+##      traefik.enable: "true"
+##      traefik.backend: "dashboard"
+##      traefik.docker.network: "public"
+##      traefik.port: "80"
+##      traefik.frontend.rule: "Host: dashboard.${TDS_DOMAINNAME}"
+#
+#  devshop:
+#    image: aegir/hostmaster
+#    container_name: "devshop"
+#    domainname: ${TDS_DOMAINNAME}
+#    hostname: "devshop"
+#    restart: always
+#    stop_grace_period: 30s
+#    ports:
+#      - ${TDS_DEVSHOP_SSHPORT}:22/tcp
+#    networks:
+#      private:
+#        aliases:
+#          - dev
+#          - devshop
+#      public:
+#        aliases:
+#          - dev.${TDS_DOMAINNAME}
+#          - devshop.${TDS_DOMAINNAME}
+#    environment:
+#      AEGIR_VERSION: "7.x-3.170"
+#      PROVISION_VERSION: "7.x-3.172"
+#      AEGIR_CLIENT_EMAIL: "${TDS_BRANDING_INFO_EMAIL}"
+#      AEGIR_MAKEFILE: "https://raw.githubusercontent.com/opendevshop/devshop/1.5.0-rc6/build-devmaster.make"
+#      AEGIR_PROFILE: "devmaster"
+#      AEGIR_HOSTMASTER_ROOT: "/var/aegir/devmaster"
+#      AEGIR_UID: 1000
+#      AEGIR_DATABASE_SERVER: devshopdb
+#      MYSQL_ROOT_PASSWORD: ${TDS_MYSQL_ROOT_PASSWORD}
+#    depends_on:
+#      - traefik
+#      - devshopdb
+#    links:
+#      - devshopdb
+#    volumes:
+#      - "/var/run/docker.sock:/var/run/docker.sock"
+#      - "${TDS_VOLUMEDIR}/devshop/data:/var/aegir"
+#    labels:
+#      traefik.enable: "true"
+#      traefik.backend: "devshop"
+#      traefik.docker.network: "public"
+#      traefik.port: "80"
+#      #traefik.frontend.rule: "Host: devshop.${TDS_DOMAINNAME}"
+#      traefik.frontend.rule: "HostRegexp:{subdomain:.+}.devshop.entwicklung,devshop.entwicklung"
+#      traefik.frontend.priority: "1"
+#
   devshopdb:
     image: mariadb:latest
     container_name: "devshopdb"

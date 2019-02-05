@@ -6,30 +6,32 @@ echo "######  1.Preparing environment..."
 ## Remove export if error is solved
 source .env
 
-export TDS_BRANDING_LOGO_URL      = $TDS_BRANDING_LOGO_URL
-export TDS_BRANDING_COMPANY_NAME  = $TDS_BRANDING_COMPANY_NAME
-export TDS_BRANDING_INFO_EMAIL    = $TDS_BRANDING_INFO_EMAIL
+export TDS_BRANDING_LOGO_URL=$TDS_BRANDING_LOGO_URL
+export TDS_BRANDING_COMPANY_NAME=$TDS_BRANDING_COMPANY_NAME
+export TDS_BRANDING_INFO_EMAIL=$TDS_BRANDING_INFO_EMAIL
 
-export TDS_CONFIG_DIR             = $TDS_CONFIG_DIR
-export TDS_VOLUMEDIR              = $TDS_VOLUMEDIR
-export TDS_BACKUPDIR              = $TDS_BACKUPDIR
-export TDS_DOMAINNAME             = $TDS_DOMAINNAME
-export TDS_TIMEZONE               = $TDS_TIMEZONE
+export TDS_CONFIG_DIR=$TDS_CONFIG_DIR
+export TDS_VOLUMEDIR=$TDS_VOLUMEDIR
+export TDS_BACKUPDIR=$TDS_BACKUPDIR
+export TDS_DOMAINNAME=$TDS_DOMAINNAME
+export TDS_TIMEZONE=$TDS_TIMEZONE
 
-export TDS_MYSQL_ROOT_PASSWORD    = $TDS_MYSQL_ROOT_PASSWORD
-export TDS_MYSQL_GITEAUSER        = $TDS_MYSQL_GITEAUSER
-export TDS_MYSQL_GITEAPWD         = $TDS_MYSQL_GITEAPWD
+export TDS_MYSQL_ROOT_PASSWORD=$TDS_MYSQL_ROOT_PASSWORD
+export TDS_MYSQL_GITEAUSER=$TDS_MYSQL_GITEAUSER
+export TDS_MYSQL_GITEAPWD=$TDS_MYSQL_GITEAPWD
 
-export TDS_GIT_SSHPORT            = $TDS_GIT_SSHPORT
-export TDS_GIT_USER_UID           = $TDS_GIT_USER_UID
-export TDS_GIT_USER_GID           = $TDS_GIT_USER_GID
-export TDS_GIT_REPO_DIR           = $TDS_GIT_REPO_DIR
+export TDS_GIT_SSHPORT=$TDS_GIT_SSHPORT
+export TDS_GIT_USER_UID=$TDS_GIT_USER_UID
+export TDS_GIT_USER_GID=$TDS_GIT_USER_GID
+export TDS_GIT_REPO_DIR=$TDS_GIT_REPO_DIR
 
-export TDS_DEVSHOP_SSHPORT        = $TDS_DEVSHOP_SSHPORT
+export TDS_DEVSHOP_SSHPORT=$TDS_DEVSHOP_SSHPORT
 
-export TDS_DRONE_GITEA_SERVER     = $TDS_DRONE_GITEA_SERVER
-export TDS_DRONE_SERVER_HOST      = $TDS_DRONE_SERVER_HOST
-export TDS_DRONE_SERVER_PROTO     = $TDS_DRONE_SERVER_PROTO
+export TDS_DRONE_GITEA_SERVER=$TDS_DRONE_GITEA_SERVER
+export TDS_DRONE_SERVER_HOST=$TDS_DRONE_SERVER_HOST
+export TDS_DRONE_SERVER_PROTO=$TDS_DRONE_SERVER_PROTO
+export TDS_DRONE_ADMIN_USER=$TDS_DRONE_ADMIN_USER
+
 
 ## Get main ip
 LOCAL_IPS=$(hostname -I)
@@ -45,7 +47,11 @@ sudo mkdir --p $TDS_VOLUMEDIR/.config/certs
 
 # Portainer
 if ${TDS_CREATE_CERTS}; then
-  ./create-certs.sh
+  wildcardhost="*.${TDS_DOMAINNAME}"
+  certdir="${TDS_VOLUMEDIR}/.config/certs"
+  subj="/C=${TDS_BRANDING_COMPANY_COUNTRY}/ST=${TDS_BRANDING_COMPANY_STATE}/L=${TDS_BRANDING_COMPANY_CITY}/O=${TDS_BRANDING_COMPANY_NAME}/OU=${TDS_BRANDING_COMPANY_DEPARTMENT}/CN=${wildcardhost}"
+  openssl req -x509 -subj "${subj}" -nodes -days 365 -newkey rsa:2048 -keyout ${certdir}/wildcard.key -out ${certdir}/wildcard.crt
+  openssl req -x509 -subj "${subj}" -nodes -days 365 -sha256 -key ${certdir}/wildcard.key -out ${certdir}/wildcard.cert
 else
   echo "Skip certs generation"
 fi
@@ -67,7 +73,7 @@ sudo echo "sendmail_path = /usr/sbin/sendmail -S mail:1025" > $TDS_VOLUMEDIR/.co
 sudo mkdir --p $TDS_GIT_REPO_DIR
 sudo mkdir --p $TDS_VOLUMEDIR/gitea
 sudo cp -r $TDS_CONFIG_DIR/gitea $TDS_VOLUMEDIR
-sudo chown -R TDS_GIT_USER_UID:TDS_GIT_USER_GID $TDS_GIT_REPO_DIR
+sudo chown -R $TDS_GIT_USER_UID:$TDS_GIT_USER_GID $TDS_GIT_REPO_DIR
 
 ## drone
 sudo mkdir --p $TDS_VOLUMEDIR/drone
@@ -129,33 +135,34 @@ docker exec -it --user=1000 devshop drush @hostmaster vset devshop_public_key "$
 
 echo "######  Cleanup installation environment"
 
-unset $TDS_BRANDING_LOGO_URL
-unset $TDS_BRANDING_COMPANY_NAME
-unset $TDS_BRANDING_INFO_EMAIL
-
-unset $TDS_CONFIG_DIR
-unset $TDS_VOLUMEDIR
-unset $TDS_BACKUPDIR
-unset $TDS_DOMAINNAME
-unset $TDS_TIMEZONE
-
-unset $TDS_MYSQL_ROOT_PASSWORD
-unset $TDS_MYSQL_GITEAUSER
-unset $TDS_MYSQL_GITEAPWD
-
-unset $TDS_GIT_SSHPORT
-unset $TDS_GIT_USER_UID
-unset $TDS_GIT_USER_GID
-unset $TDS_GIT_REPO_DIR
-
-unset $TDS_DEVSHOP_SSHPORT
-
-unset $TDS_DRONE_GITEA_SERVER
-unset $TDS_DRONE_SERVER_HOST
-unset $TDS_DRONE_SERVER_PROTO
-
-unset $LOCAL_IPS
-unset $LOCAL_IPAR
-unset $IP
+#unset $TDS_BRANDING_LOGO_URL
+#unset $TDS_BRANDING_COMPANY_NAME
+#unset $TDS_BRANDING_INFO_EMAIL
+#
+#unset $TDS_CONFIG_DIR
+#unset $TDS_VOLUMEDIR
+#unset $TDS_BACKUPDIR
+#unset $TDS_DOMAINNAME
+#unset $TDS_TIMEZONE
+#
+#unset $TDS_MYSQL_ROOT_PASSWORD
+#unset $TDS_MYSQL_GITEAUSER
+#unset $TDS_MYSQL_GITEAPWD
+#
+#unset $TDS_GIT_SSHPORT
+#unset $TDS_GIT_USER_UID
+#unset $TDS_GIT_USER_GID
+#unset $TDS_GIT_REPO_DIR
+#
+#unset $TDS_DEVSHOP_SSHPORT
+#
+#unset $TDS_DRONE_GITEA_SERVER
+#unset $TDS_DRONE_SERVER_HOST
+#unset $TDS_DRONE_SERVER_PROTO
+#unset $TDS_DRONE_ADMIN_USER
+#
+#unset $LOCAL_IPS
+#unset $LOCAL_IPAR
+#unset $IP
 
 echo "######  Finished"
