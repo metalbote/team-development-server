@@ -12,17 +12,17 @@ accessLogsFile = "/var/log/access_traefik.log"
 #Define the EntryPoint for HTTP and HTTPS
 defaultEntryPoints = ["http","https"]
 
-#Enable Traefik Dashboard on port 8080
-#with basic authentication method
-[web]
-address = ":8080"
-[web.auth.basic]
-users = ["admin:$apr1$iE0pANfc$gobRdp3SqRLrkk9tuy7AT0"]
-
+#Define Docker Backend Configuration
 [docker]
+domain = "entwicklung"
 watch = true
 endpoint = "unix:///var/run/docker.sock"
 exposedbydefault = false
+[docker.tls]
+#  ca = "/etc/ssl/ca.crt"
+#  cert = "/etc/ssl/docker.crt"
+#  key = "/etc/ssl/docker.key"
+  insecureSkipVerify = true
 
 #Define the HTTP port 80 and
 #HTTPS port 443 EntryPoint
@@ -39,13 +39,9 @@ exposedbydefault = false
       certFile = "/certs/wildcard.crt"
       keyFile = "/certs/wildcard.key"
 
-  [entryPoints.proxy]
-    address=":8080"
-    [entryPoints.proxy.auth]
-      [entryPoints.proxy.auth.basic]
-        users = [
-         "admin:$apr1$iE0pANfc$gobRdp3SqRLrkk9tuy7AT0"
-        ]
+#Enable retry sending a request if the network error
+[retry]
+
 
 [file]
 watch = true

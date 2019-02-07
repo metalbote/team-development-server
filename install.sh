@@ -38,6 +38,7 @@ LOCAL_IPS=$(hostname -I)
 LOCAL_IPAR=($LOCAL_IPS)
 IP=${LOCAL_IPAR[0]}
 
+
 echo "######  2.Creating persistent storage in $TDS_VOLUMEDIR and copy configuration"
 ## Shared config and backup folder
 sudo mkdir --p $TDS_BACKUPDIR
@@ -47,11 +48,16 @@ sudo mkdir --p $TDS_VOLUMEDIR/.config/certs
 
 # Portainer
 if ${TDS_CREATE_CERTS}; then
-  wildcardhost="*.${TDS_DOMAINNAME}"
-  certdir="${TDS_VOLUMEDIR}/.config/certs"
-  subj="/C=${TDS_BRANDING_COMPANY_COUNTRY}/ST=${TDS_BRANDING_COMPANY_STATE}/L=${TDS_BRANDING_COMPANY_CITY}/O=${TDS_BRANDING_COMPANY_NAME}/OU=${TDS_BRANDING_COMPANY_DEPARTMENT}/CN=${wildcardhost}"
-  openssl req -x509 -subj "${subj}" -nodes -days 365 -newkey rsa:2048 -keyout ${certdir}/wildcard.key -out ${certdir}/wildcard.crt
-  openssl req -x509 -subj "${subj}" -nodes -days 365 -sha256 -key ${certdir}/wildcard.key -out ${certdir}/wildcard.cert
+  TDS_WILDCARDDOMAIN="*.${TDS_DOMAINNAME}"
+  TDS_CERTDIR="${TDS_VOLUMEDIR}/.config/certs"
+  openssl genrsa -out "${TDS_CERTDIR}/wildcard.key" 2048
+  openssl req -new -subj "/C=${TDS_BRANDING_COMPANY_COUNTRY}/ST=${TDS_BRANDING_COMPANY_STATE}/O=${TDS_BRANDING_COMPANY_NAME}/localityName=${TDS_BRANDING_COMPANY_CITY}/commonName=${TDS_WILDCARDDOMAIN}/organizationalUnitName=${TDS_BRANDING_COMPANY_DEPARTMENT}/emailAddress=${TDS_BRANDING_INFO_EMAIL}" -key "${TDS_CERTDIR}/wildcard.key" -out "${TDS_CERTDIR}/wildcard.csr"
+  openssl x509 -req -days 365 -in "${TDS_CERTDIR}/wildcard.csr" -signkey "${TDS_CERTDIR}/wildcard.key" -out "${TDS_CERTDIR}/wildcard.crt"
+
+  # Converting
+  openssl pkcs12 -export -name "${TDS_CERTDIR}/wildcard" -out ${TDS_CERTDIR}/wildcard.pfx -inkey ${TDS_CERTDIR}/wildcard.key -in ${TDS_CERTDIR}/wildcard.crt -password pass:${TDS_CERT_PASSWORD}
+  openssl x509 -inform PEM -in ${TDS_CERTDIR}/wildcard.crt -outform DER -out ${TDS_CERTDIR}/wildcard.der
+
 else
   echo "Skip certs generation"
 fi
@@ -59,6 +65,7 @@ fi
 ## traefik
 sudo mkdir --p $TDS_VOLUMEDIR/traefik
 sudo cp -r $TDS_CONFIG_DIR/traefik $TDS_VOLUMEDIR
+sed -i "s/^\(domain\s*=\s*\).*\$/\1\"$TDS_DOMAINNAME\"/" ./config/traefik/traefik.toml;
 
 ## portainer
 sudo mkdir --p $TDS_VOLUMEDIR/portainer

@@ -31,10 +31,20 @@ services:
     #   - "${TDS_VOLUMEDIR}/traefik/acme.json:/acme.json"
     labels:
       traefik.enable: "true"
-      traefik.backend: "proxy"
       traefik.docker.network: "public"
       traefik.port: "8080"
-      traefik.frontend.rule: "Host:proxy.${TDS_DOMAINNAME}"
+      traefik.backend: "proxy"
+      #      traefik.folder.frontend.headers.SSLRedirect: "true"
+      #      traefik.folder.frontend.entryPoints: "https"
+      #      traefik.folder.frontend.redirect.entryPoint: "https"
+      #      traefik.folder.frontend.passHostHeader: "true"
+      #      traefik.folder.frontend.auth.basic: "${TDS_ADMIN_USER}:${TDS_ADMIN_HTPASSWD}"
+      #      traefik.folder.frontend.rule: "Host: server.${TDS_DOMAINNAME}; PathPrefixStrip:/traefik"
+      traefik.sub.frontend.headers.SSLRedirect: "true"
+      traefik.sub.frontend.entryPoints: "http,https"
+      traefik.sub.frontend.passHostHeader: "true"
+      traefik.sub.frontend.auth.basic: "${TDS_ADMIN_USER}:${TDS_ADMIN_HTPASSWD}"
+      traefik.sub.frontend.rule: "Host: proxy.${TDS_DOMAINNAME}"
 
   portainer:
     env_file: .env
@@ -56,13 +66,16 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "${TDS_VOLUMEDIR}/portainer/data:/data"
-#     - "${TDS_VOLUMEDIR}/portainer/config/templates.json:/templates.json"
+    #     - "${TDS_VOLUMEDIR}/portainer/config/templates.json:/templates.json"
     labels:
       traefik.enable: "true"
       traefik.backend: "portainer"
       traefik.docker.network: "public"
       traefik.port: "9000"
-      traefik.frontend.rule: "Host:portainer.${TDS_DOMAINNAME}"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.entryPoints: "http,https"
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.rule: "Host: portainer.${TDS_DOMAINNAME}, www.portainer.${TDS_DOMAINNAME}"
 
   mailhog:
     env_file: .env
@@ -88,7 +101,10 @@ services:
       traefik.backend: "mailhog"
       traefik.docker.network: "public"
       traefik.port: "8025"
-      traefik.frontend.rule: "Host:mail.${TDS_DOMAINNAME}"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.entryPoints: "http,https"
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.rule: "Host: mail.${TDS_DOMAINNAME}, www.mail.${TDS_DOMAINNAME}"
 
   gitea:
     env_file: .env
@@ -116,7 +132,7 @@ services:
       SSH_DOMAIN: gitea.${TDS_DOMAINNAME}
       SSH_PORT: ${TDS_GIT_SSHPORT}
       DISABLE_SSH: "false"
-      HTTP_PORT: 3000
+      HTTP_PORT: 443
       ROOT_URL: "https://gitea.${TDS_DOMAINNAME}"
       DB_TYPE: mysql
       DB_HOST: gitdb.${TDS_DOMAINNAME}:3306
@@ -139,11 +155,12 @@ services:
     labels:
       traefik.enable: "true"
       traefik.backend: "gitea"
-      traefik.frontend.entryPoints: "https"
-      traefik.frontend.passHostHeader: "true"
       traefik.docker.network: "public"
       traefik.port: "3000"
-      traefik.frontend.rule: "Host: gitea.${TDS_DOMAINNAME}"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.entryPoints: "http,https"
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.rule: "Host: gitea.${TDS_DOMAINNAME}, www.gitea.${TDS_DOMAINNAME}"
 
   giteadb:
     env_file: .env
@@ -164,6 +181,8 @@ services:
       MYSQL_DATABASE: gitea
     volumes:
       - "${TDS_VOLUMEDIR}/gitea/mysql:/var/lib/mysql"
+    labels:
+      traefik.enable: "false"
 
   pma:
     env_file: .env
@@ -197,7 +216,10 @@ services:
       traefik.backend: "pma"
       traefik.docker.network: "public"
       traefik.port: "80"
-      traefik.frontend.rule: "Host:pma.${TDS_DOMAINNAME}"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.entryPoints: "http,https"
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.rule: "Host: pma.${TDS_DOMAINNAME}, www.pma.${TDS_DOMAINNAME}"
 
   drone:
     env_file: .env
@@ -212,22 +234,17 @@ services:
       public:
         aliases:
           - drone.${TDS_DOMAINNAME}
-          - ci.${TDS_DOMAINNAME}
     depends_on:
       - gitea
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "${TDS_VOLUMEDIR}/drone/data:/var/lib/drone/"
-      - "${TDS_VOLUMEDIR}/.config/certs/wildcard.crt:/etc/certs/drone.company.com/wildcard.crt"
-      - "${TDS_VOLUMEDIR}/.config/certs/wildcard.key:/etc/certs/drone.company.com/wildcard.key"
     environment:
       - DRONE_GITEA_SERVER=http://gitea.${TDS_DOMAINNAME}:3000
       - DRONE_GIT_ALWAYS_AUTH=false
       - DRONE_RUNNER_CAPACITY=2
       - DRONE_SERVER_HOST=http:/drone.${TDS_DOMAINNAME}
-      - DRONE_SERVER_PROTO=http
-#      - DRONE_TLS_CERT=/etc/certs/drone.company.com/wildcard.crt
-#      - DRONE_TLS_KEY=/etc/certs/drone.company.com/wildcard.key
+      - DRONE_SERVER_PROTO=https
       - DRONE_TLS_AUTOCERT=false
       - DRONE_USER_CREATE=username:${TDS_DRONE_ADMIN_USER},admin:true
       - DRONE_LOGS_COLOR=true
@@ -238,77 +255,80 @@ services:
       traefik.backend: "drone"
       traefik.docker.network: "public"
       traefik.port: "80"
-      traefik.frontend.rule: "Host: drone.${TDS_DOMAINNAME}"
-#
-##  dashboard:
-##    image: geerlingguy/drupal-vm
-##    container_name: dashboard
-##    restart: always
-##    stop_grace_period: 30s
-##    command: /lib/systemd/systemd
-##    privileged: true
-##    volumes:
-##      - "${TDS_VOLUMEDIR}/dashboard/data:/var/www/drupalvm/drupal:rw,delegated"
-##      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-##    networks:
-##      private:
-##        aliases:
-##          - dashboard
-##      public:
-##        aliases:
-##          - dashboard.${TDS_DOMAINNAME}
-##    labels:
-##      traefik.enable: "true"
-##      traefik.backend: "dashboard"
-##      traefik.docker.network: "public"
-##      traefik.port: "80"
-##      traefik.frontend.rule: "Host: dashboard.${TDS_DOMAINNAME}"
-#
-#  devshop:
-#    image: aegir/hostmaster
-#    container_name: "devshop"
-#    domainname: ${TDS_DOMAINNAME}
-#    hostname: "devshop"
-#    restart: always
-#    stop_grace_period: 30s
-#    ports:
-#      - ${TDS_DEVSHOP_SSHPORT}:22/tcp
-#    networks:
-#      private:
-#        aliases:
-#          - dev
-#          - devshop
-#      public:
-#        aliases:
-#          - dev.${TDS_DOMAINNAME}
-#          - devshop.${TDS_DOMAINNAME}
-#    environment:
-#      AEGIR_VERSION: "7.x-3.170"
-#      PROVISION_VERSION: "7.x-3.172"
-#      AEGIR_CLIENT_EMAIL: "${TDS_BRANDING_INFO_EMAIL}"
-#      AEGIR_MAKEFILE: "https://raw.githubusercontent.com/opendevshop/devshop/1.5.0-rc6/build-devmaster.make"
-#      AEGIR_PROFILE: "devmaster"
-#      AEGIR_HOSTMASTER_ROOT: "/var/aegir/devmaster"
-#      AEGIR_UID: 1000
-#      AEGIR_DATABASE_SERVER: devshopdb
-#      MYSQL_ROOT_PASSWORD: ${TDS_MYSQL_ROOT_PASSWORD}
-#    depends_on:
-#      - traefik
-#      - devshopdb
-#    links:
-#      - devshopdb
-#    volumes:
-#      - "/var/run/docker.sock:/var/run/docker.sock"
-#      - "${TDS_VOLUMEDIR}/devshop/data:/var/aegir"
-#    labels:
-#      traefik.enable: "true"
-#      traefik.backend: "devshop"
-#      traefik.docker.network: "public"
-#      traefik.port: "80"
-#      #traefik.frontend.rule: "Host: devshop.${TDS_DOMAINNAME}"
-#      traefik.frontend.rule: "HostRegexp:{subdomain:.+}.devshop.entwicklung,devshop.entwicklung"
-#      traefik.frontend.priority: "1"
-#
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.entryPoints: "http,https"
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.rule: "Host: drone.${TDS_DOMAINNAME}, www.drone.${TDS_DOMAINNAME}"
+  #
+  ##  dashboard:
+  ##    image: geerlingguy/drupal-vm
+  ##    container_name: dashboard
+  ##    restart: always
+  ##    stop_grace_period: 30s
+  ##    command: /lib/systemd/systemd
+  ##    privileged: true
+  ##    volumes:
+  ##      - "${TDS_VOLUMEDIR}/dashboard/data:/var/www/drupalvm/drupal:rw,delegated"
+  ##      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  ##    networks:
+  ##      private:
+  ##        aliases:
+  ##          - dashboard
+  ##      public:
+  ##        aliases:
+  ##          - dashboard.${TDS_DOMAINNAME}
+  ##    labels:
+  ##      traefik.enable: "true"
+  ##      traefik.backend: "dashboard"
+  ##      traefik.docker.network: "public"
+  ##      traefik.port: "80"
+  ##      traefik.frontend.rule: "Host: dashboard.${TDS_DOMAINNAME}"
+  #
+  #  devshop:
+  #    image: aegir/hostmaster
+  #    container_name: "devshop"
+  #    domainname: ${TDS_DOMAINNAME}
+  #    hostname: "devshop"
+  #    restart: always
+  #    stop_grace_period: 30s
+  #    ports:
+  #      - ${TDS_DEVSHOP_SSHPORT}:22/tcp
+  #    networks:
+  #      private:
+  #        aliases:
+  #          - dev
+  #          - devshop
+  #      public:
+  #        aliases:
+  #          - dev.${TDS_DOMAINNAME}
+  #          - devshop.${TDS_DOMAINNAME}
+  #    environment:
+  #      AEGIR_VERSION: "7.x-3.170"
+  #      PROVISION_VERSION: "7.x-3.172"
+  #      AEGIR_CLIENT_EMAIL: "${TDS_BRANDING_INFO_EMAIL}"
+  #      AEGIR_MAKEFILE: "https://raw.githubusercontent.com/opendevshop/devshop/1.5.0-rc6/build-devmaster.make"
+  #      AEGIR_PROFILE: "devmaster"
+  #      AEGIR_HOSTMASTER_ROOT: "/var/aegir/devmaster"
+  #      AEGIR_UID: 1000
+  #      AEGIR_DATABASE_SERVER: devshopdb
+  #      MYSQL_ROOT_PASSWORD: ${TDS_MYSQL_ROOT_PASSWORD}
+  #    depends_on:
+  #      - traefik
+  #      - devshopdb
+  #    links:
+  #      - devshopdb
+  #    volumes:
+  #      - "/var/run/docker.sock:/var/run/docker.sock"
+  #      - "${TDS_VOLUMEDIR}/devshop/data:/var/aegir"
+  #    labels:
+  #      traefik.enable: "true"
+  #      traefik.backend: "devshop"
+  #      traefik.docker.network: "public"
+  #      traefik.port: "80"
+  #      #traefik.frontend.rule: "Host: devshop.${TDS_DOMAINNAME}"
+  #      traefik.frontend.rule: "HostRegexp:{subdomain:.+}.devshop.entwicklung,devshop.entwicklung"
+  #      traefik.frontend.priority: "1"
+  #
   devshopdb:
     image: mariadb:latest
     container_name: "devshopdb"
