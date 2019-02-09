@@ -1,0 +1,35 @@
+#Traefik Global Configuration
+debug = true
+checkNewVersion = true
+logLevel = "DEBUG"
+
+[traefikLog]
+filePath = "/var/log/traefik.log"
+
+[accessLog]
+accessLogsFile = "/var/log/access_traefik.log"
+
+#Define the EntryPoint for HTTP and HTTPS
+defaultEntryPoints = ["http","https"]
+
+[docker]
+watch = true
+endpoint = "unix:///var/run/docker.sock"
+exposedbydefault = false
+
+#Define the HTTP port 80 and
+#HTTPS port 443 EntryPoint
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+
+  [entryPoints.https]
+  address = ":443"
+
+  [entryPoints.https.tls]
+    [[entryPoints.https.tls.certificates]]
+      certFile = "/certs/wildcard.crt"
+      keyFile = "/certs/wildcard.key"
+
+[file]
+watch = true

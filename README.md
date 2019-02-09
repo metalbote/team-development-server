@@ -23,10 +23,8 @@ But make sure that you have the following installed or configured:
 
 1. Clone this repo onto your server!
 2. Edit the .env file according to your needs.
-3. Fire up your system with:  
-    ```bash
-    bash init-environment.sh
-    ```
+3a. Use 'prepare.sh' to install necessary packages onto your server
+3b. Use 'install.sh' to fire the containers up
 4. Visit `http://proxy.<yourdomain.com>` to verify all containers running and have correct proxying
 5. Visit `http://portainer.<yourdomain.com>` and do all your docker/container stuff
 6. Visit `http://gitea.<yourdomain.com>` and finish install configuration. Most of the settings are already configured correctly and have been taken from the .env file. Only Email resp. Admin have to be configured.

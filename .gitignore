@@ -55,10 +55,3 @@ fabric.properties
 
 # Editor-based Rest Client
 .idea/httpRequests
-
-# My personal data and config
-.env
-/myconfig/
-/backup/
-/tmp/
-*.cert

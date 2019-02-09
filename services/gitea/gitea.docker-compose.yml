@@ -1,0 +1,85 @@
+version: "3.6"
+services:
+
+  tds_gitea:
+    env_file: .env
+    image: gitea/gitea:latest
+    container_name: "tds_gitea"
+    domainname: ${TDS_DOMAINNAME}
+    hostname: "gitea"
+    restart: always
+    stop_grace_period: 30s
+    ports:
+      - ${TDS_GITEA_SSHPORT}:22/tcp
+    networks:
+      private:
+        aliases:
+          - gitea.${TDS_DOMAINNAME}
+          - gitea
+      public:
+        aliases:
+          - git.${TDS_DOMAINNAME}
+    external_links:
+      - tds_proxy
+    environment:
+      APP_NAME: "${TDS_BRANDING_NAME} GIT Versioning Server"
+      RUN_MODE: dev
+      SSH_DOMAIN: gitea.${TDS_DOMAINNAME}
+      SSH_PORT: ${TDS_GITEA_SSHPORT}
+      DISABLE_SSH: "false"
+      HTTP_PORT: 443
+      ROOT_URL: "https://gitea.${TDS_DOMAINNAME}"
+      DB_TYPE: mysql
+      DB_HOST: tds_giteadb:3306
+      DB_NAME: ${TDS_MYSQL_GITEA_DATABASE}
+      DB_USER: ${TDS_MYSQL_GITEA_USER}
+      DB_PASSWD: ${TDS_MYSQL_GITEA_PASSWORD}
+      INSTALL_LOCK: "FALSE"
+      DISABLE_REGISTRATION: "FALSE"
+      REQUIRE_SIGNIN_VIEW: "TRUE"
+      USER_UID: ${TDS_GITEA_USER_UID}
+      USER_GID: ${TDS_GITEA_USER_GID}
+    volumes:
+      - "./data:/data"
+      - "./config/style/css:/data/gitea/public/css"
+      - "./config/style/img:/data/gitea/public/img"
+      - "${TDS_REPO_DIR}:/data/git/repositories"
+    labels:
+      traefik.enable: "true"
+      traefik.backend: "tds_gitea"
+      traefik.docker.network: "tds_public"
+      traefik.port: "3000"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.entryPoints: "http,https"
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.rule: "Host: gitea.${TDS_DOMAINNAME}, www.gitea.${TDS_DOMAINNAME}"
+
+  tds_giteadb:
+    env_file: .env
+    image: mariadb:latest
+    container_name: "tds_giteadb"
+    domainname: ${TDS_DOMAINNAME}
+    hostname: "tds_giteadb"
+    restart: always
+    stop_grace_period: 30s
+    networks:
+      private:
+        aliases:
+          - tds_giteadb
+    environment:
+      MYSQL_ROOT_PASSWORD: ${TDS_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${TDS_MYSQL_GITEA_DATABASE}
+      MYSQL_USER: ${TDS_MYSQL_GITEA_USER}
+      MYSQL_PASSWORD: ${TDS_MYSQL_GITEA_PASSWORD}
+    volumes:
+      - "./mysql:/var/lib/mysql"
+    labels:
+      traefik.enable: "false"
+
+networks:
+  public:
+    external:
+      name: tds_public
+  private:
+    external:
+      name: tds_private

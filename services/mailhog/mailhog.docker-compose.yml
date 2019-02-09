@@ -1,0 +1,39 @@
+version: "3.6"
+services:
+
+  tds_mailhog:
+    env_file: .env
+    image: mailhog/mailhog:latest
+    container_name: "tds_mailhog"
+    restart: always
+    command: ["-storage=maildir", "-maildir-path=/maildir"]
+    networks:
+      private:
+        aliases:
+          - mailhog
+          - mail
+      public:
+        aliases:
+          - mailhog.${TDS_DOMAINNAME}
+          - mail.${TDS_DOMAINNAME}
+    external_links:
+      - tds_proxy
+    volumes:
+      - "./data/mails:/maildir"
+    labels:
+      traefik.enable: "true"
+      traefik.backend: "tds_mailhog"
+      traefik.docker.network: "tds_public"
+      traefik.port: "8025"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.entryPoints: "http,https"
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.rule: "Host: mail.${TDS_DOMAINNAME}, www.mail.${TDS_DOMAINNAME}"
+
+networks:
+  public:
+    external:
+      name: tds_public
+  private:
+    external:
+      name: tds_private

@@ -1,0 +1,111 @@
+version: "3.6"
+services:
+
+  tds_php-censor-web:
+    env_file: .env
+    image: "phpcensor/php-censor-web:latest"
+    container_name: "tds_php-censor-web"
+    domainname: ${TDS_DOMAINNAME}
+    restart: always
+    stop_grace_period: 30s
+    networks:
+      private:
+        aliases:
+          - tds_php-censor-web
+      public:
+        aliases:
+          - php-censor.${TDS_DOMAINNAME}
+    external_links:
+      - tds_proxy
+    environment:
+      - DB_HOST=tds_php-censor-db
+      - DB_USER=${TDS_MYSQL_PHPCENSOR_USER}
+      - DB_PASS=${TDS_MYSQL_PHPCENSOR_PASSWORD}
+      - DB_NAME=${TDS_MYSQL_PHPCENSOR_DATABASE}
+      - BEANSTALK_HOST=tds_php-censor-queue
+      - BEANSTALK_QUEUE_NAME=phpcensor
+      - DB_TYPE=mysql
+      - DB_PORT=3306
+      - SITE_URL=https://php-censor.${TDS_DOMAINNAME}
+      - GITHUB_TOKEN=${TDS_PHPCENSOR_GITHUB_TOKEN}
+      - ADMIN_NAME=${TDS_PHPCENSOR_ADMIN_USER}
+      - ADMIN_EMAIL=${TDS_PHPCENSOR_INFO_EMAIL}
+      - ADMIN_PASSWORD=${TDS_PHPCENSOR_ADMIN_PASSWORD}
+    labels:
+      traefik.enable: "true"
+      traefik.backend: "tds_php-censor"
+      traefik.docker.network: "tds_public"
+      traefik.port: "80"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.entryPoints: "http,https"
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.rule: "Host: php-censor.${TDS_DOMAINNAME}, www.php-censor.${TDS_DOMAINNAME}"
+
+  tds_php-censor-db:
+    env_file: .env
+    image: mariadb:latest
+    container_name: "tds_php-censor-db"
+    domainname: ${TDS_DOMAINNAME}
+    hostname: "tds_php-censor-db"
+    restart: always
+    stop_grace_period: 30s
+    networks:
+      private:
+        aliases:
+          - tds_php-censor-db
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "False"
+      MYSQL_ROOT_PASSWORD: ${TDS_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${TDS_MYSQL_PHPCENSOR_DATABASE}
+      MYSQL_USER: ${TDS_MYSQL_PHPCENSOR_USER}
+      MYSQL_PASSWORD: ${TDS_MYSQL_PHPCENSOR_PASSWORD}
+    volumes:
+      - "./mysql:/var/lib/mysql"
+    labels:
+      traefik.enable: "false"
+
+  tds_php-censor-worker:
+    env_file: .env
+    image: "phpcensor/php-censor-worker:latest"
+    container_name: "tds_php-censor-worker"
+    restart: always
+    stop_grace_period: 30s
+    networks:
+      private:
+        aliases:
+          - tds_php-censor-worker
+    environment:
+      - DB_HOST=tds_php-censor-db
+      - DB_USER=${TDS_MYSQL_PHPCENSOR_USER}
+      - DB_PASS=${TDS_MYSQL_PHPCENSOR_PASSWORD}
+      - DB_NAME=${TDS_MYSQL_PHPCENSOR_DATABASE}
+      - BEANSTALK_HOST=tds_php-censor-queue
+      - BEANSTALK_QUEUE_NAME=phpcensor
+      - DB_TYPE=mysql
+      - DB_PORT=3306
+      - SITE_URL=https://php-censor.${TDS_DOMAINNAME}
+      - GITHUB_TOKEN=${TDS_PHPCENSOR_GITHUB_TOKEN}
+      - ADMIN_NAME=${TDS_PHPCENSOR_ADMIN_USER}
+      - ADMIN_EMAIL=${TDS_INFO_EMAIL}
+      - ADMIN_PASSWORD=${TDS_PHPCENSOR_ADMIN_PASSWORD}
+    labels:
+      traefik.enable: "false"
+
+  tds_php-censor-queue:
+    env_file: .env
+    image: "schickling/beanstalkd"
+    container_name: "tds_php-censor-queue"
+    networks:
+      private:
+        aliases:
+          - tds_php-censor-queue
+    labels:
+      traefik.enable: "false"
+
+networks:
+  public:
+    external:
+      name: tds_public
+  private:
+    external:
+      name: tds_private

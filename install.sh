@@ -1,175 +1,122 @@
 #!/usr/bin/env bash
 
-echo "######  1.Preparing environment..."
+echo "=================================================="
+echo " Welcome to the Team Development Server Installer "
+echo "                                                  "
+echo "=================================================="
 
-## Load variables from .env file and set them explicit via export
-## Remove export if error is solved
 source .env
 
-export TDS_BRANDING_LOGO_URL=$TDS_BRANDING_LOGO_URL
-export TDS_BRANDING_COMPANY_NAME=$TDS_BRANDING_COMPANY_NAME
-export TDS_BRANDING_INFO_EMAIL=$TDS_BRANDING_INFO_EMAIL
-
-export TDS_CONFIG_DIR=$TDS_CONFIG_DIR
-export TDS_VOLUMEDIR=$TDS_VOLUMEDIR
-export TDS_BACKUPDIR=$TDS_BACKUPDIR
-export TDS_DOMAINNAME=$TDS_DOMAINNAME
-export TDS_TIMEZONE=$TDS_TIMEZONE
-
-export TDS_MYSQL_ROOT_PASSWORD=$TDS_MYSQL_ROOT_PASSWORD
-export TDS_MYSQL_GITEAUSER=$TDS_MYSQL_GITEAUSER
-export TDS_MYSQL_GITEAPWD=$TDS_MYSQL_GITEAPWD
-
-export TDS_GIT_SSHPORT=$TDS_GIT_SSHPORT
-export TDS_GIT_USER_UID=$TDS_GIT_USER_UID
-export TDS_GIT_USER_GID=$TDS_GIT_USER_GID
-export TDS_GIT_REPO_DIR=$TDS_GIT_REPO_DIR
-
-export TDS_DEVSHOP_SSHPORT=$TDS_DEVSHOP_SSHPORT
-
-export TDS_DRONE_GITEA_SERVER=$TDS_DRONE_GITEA_SERVER
-export TDS_DRONE_SERVER_HOST=$TDS_DRONE_SERVER_HOST
-export TDS_DRONE_SERVER_PROTO=$TDS_DRONE_SERVER_PROTO
-export TDS_DRONE_ADMIN_USER=$TDS_DRONE_ADMIN_USER
-
-
-## Get main ip
-LOCAL_IPS=$(hostname -I)
-LOCAL_IPAR=($LOCAL_IPS)
-IP=${LOCAL_IPAR[0]}
-
-
-echo "######  2.Creating persistent storage in $TDS_VOLUMEDIR and copy configuration"
-## Shared config and backup folder
-sudo mkdir --p $TDS_BACKUPDIR
-sudo mkdir --p $TDS_VOLUMEDIR/.config/php
-sudo mkdir --p $TDS_VOLUMEDIR/.config/mysql
-sudo mkdir --p $TDS_VOLUMEDIR/.config/certs
-
-# Portainer
-if ${TDS_CREATE_CERTS}; then
-  TDS_WILDCARDDOMAIN="*.${TDS_DOMAINNAME}"
-  TDS_CERTDIR="${TDS_VOLUMEDIR}/.config/certs"
-  openssl genrsa -out "${TDS_CERTDIR}/wildcard.key" 2048
-  openssl req -new -subj "/C=${TDS_BRANDING_COMPANY_COUNTRY}/ST=${TDS_BRANDING_COMPANY_STATE}/O=${TDS_BRANDING_COMPANY_NAME}/localityName=${TDS_BRANDING_COMPANY_CITY}/commonName=${TDS_WILDCARDDOMAIN}/organizationalUnitName=${TDS_BRANDING_COMPANY_DEPARTMENT}/emailAddress=${TDS_BRANDING_INFO_EMAIL}" -key "${TDS_CERTDIR}/wildcard.key" -out "${TDS_CERTDIR}/wildcard.csr"
-  openssl x509 -req -days 365 -in "${TDS_CERTDIR}/wildcard.csr" -signkey "${TDS_CERTDIR}/wildcard.key" -out "${TDS_CERTDIR}/wildcard.crt"
-
-  # Converting
-  openssl pkcs12 -export -name "${TDS_CERTDIR}/wildcard" -out ${TDS_CERTDIR}/wildcard.pfx -inkey ${TDS_CERTDIR}/wildcard.key -in ${TDS_CERTDIR}/wildcard.crt -password pass:${TDS_CERT_PASSWORD}
-  openssl x509 -inform PEM -in ${TDS_CERTDIR}/wildcard.crt -outform DER -out ${TDS_CERTDIR}/wildcard.der
-
-else
-  echo "Skip certs generation"
+# Fail if not running as root (sudo)
+if [ $EUID -ne 0 ]; then
+    echo " This script must be run as root.  Try 'sudo -H bash install.sh'." 1>&2
+    exit 1
 fi
 
-## traefik
-sudo mkdir --p $TDS_VOLUMEDIR/traefik
-sudo cp -r $TDS_CONFIG_DIR/traefik $TDS_VOLUMEDIR
-sed -i "s/^\(domain\s*=\s*\).*\$/\1\"$TDS_DOMAINNAME\"/" ./config/traefik/traefik.toml;
+if [ -f '/etc/os-release' ]; then
+    . /etc/os-release
+    OS=$ID
+    VERSION="$VERSION_ID"
+    HOSTNAME_FQDN=`hostname --fqdn`
 
-## portainer
-sudo mkdir --p $TDS_VOLUMEDIR/portainer
-sudo cp -r $TDS_CONFIG_DIR/portainer $TDS_VOLUMEDIR
+elif [ -f '/etc/lsb-release' ]; then
+    . /etc/lsb-release
+    OS=$DISTRIB_ID
+    VERSION="$DISTRIB_RELEASE"
+    HOSTNAME_FQDN=`hostname --fqdn`
 
-## mailhog
-sudo mkdir --p $TDS_VOLUMEDIR/mailhog
-sudo cp -r $TDS_CONFIG_DIR/mailhog $TDS_VOLUMEDIR
-sudo echo "sendmail_path = /usr/sbin/sendmail -S mail:1025" > $TDS_VOLUMEDIR/.config/php/php-ext-mailhog.ini
+    if [ $OS == "Ubuntu" ]; then
+      OS=ubuntu
+    fi
 
-## gitea
-sudo mkdir --p $TDS_GIT_REPO_DIR
-sudo mkdir --p $TDS_VOLUMEDIR/gitea
-sudo cp -r $TDS_CONFIG_DIR/gitea $TDS_VOLUMEDIR
-sudo chown -R $TDS_GIT_USER_UID:$TDS_GIT_USER_GID $TDS_GIT_REPO_DIR
+elif [ -f '/etc/redhat-release' ]; then
+    OS=$(cat /etc/redhat-release | awk '{print tolower($1);}')
+    VERSION=$(cat /etc/redhat-release | awk '{print $3;}')
+    HOSTNAME_FQDN=`hostname --fqdn`
+fi
 
-## drone
-sudo mkdir --p $TDS_VOLUMEDIR/drone
-sudo cp -r $TDS_CONFIG_DIR/drone $TDS_VOLUMEDIR
+echo "--------------------------------------------------"
+echo " Detected system environment:                     "
+echo " OS: $OS                                          "
+echo " Version: $VERSION                                "
+echo " Hostname: $HOSTNAME_FQDN                         "
+echo "--------------------------------------------------"
+echo ""
 
-## dashboard
-sudo mkdir --p $TDS_VOLUMEDIR/dashboard
-sudo cp -r $TDS_CONFIG_DIR/dashboard $TDS_VOLUMEDIR
+if [ $OS = "opensuse-tumbleweed-kubic" ]; then
+  echo "Running kubic setup...run following command in transactional-update shell"
+  echo "cp -r ./cloud-init-config / && exit"
+  exit
+fi
 
-## devshop
-sudo mkdir --p $TDS_VOLUMEDIR/devshop
-sudo cp -r $TDS_CONFIG_DIR/devshop $TDS_VOLUMEDIR
+# Install base packages
+  echo "#### Install base packages..."
+if [ $OS = "centos" ]; then
+  yum install -y epel-release
+  yum install mc curl net-tools wget yum-utils vim git samba-client samba-common cifs-utils httpd-tools
+elif [  $OS = "Ubuntu" ]; then
+  sudo apt-get install mc curl net-tools wget yum-utils vim git samba-client samba-common cifs-utils httpd-tools
+fi
 
-## custom mysql password not working
-#sudo echo "[client]" > $TDS_VOLUMEDIR/devshop/data/.my.cnf
-#sudo echo "user=root" >> $TDS_VOLUMEDIR/devshop/data/.my.cnf
-#sudo echo "password=$TDS_MYSQL_ROOT_PASSWORD" >> $TDS_VOLUMEDIR/devshop/data/.my.cnf
-#sudo echo "host=localhost" >> $TDS_VOLUMEDIR/devshop/mysql/.my.cnf
-sudo chown -R 1000:1000 $TDS_CONFIG_DIR/devshop
+# Install vm support packages
+echo "#### Install vm support packages..."
+if [ $OS = "centos" ]; then
+  yum install -y open-vm-tools
+elif [  $OS = "Ubuntu" ]; then
+  sudo apt-get install open-vm-tools
+fi
 
-echo "######  3.Add container names to /etc/hosts"
-## traefik
-ADDHOSTNAME="proxy.$TDS_DOMAINNAME proxy traefik.$TDS_DOMAINNAME traefik"
-printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
+if [ $OS = "centos" ]; then
+# Install and prepare kernel environment
+  echo "#### Install and prepare kernel environment..."
+  yum group install "Development Tools"
+  export kernel_headers=`ls -hd /usr/src/kernels/3*`
+  sudo ln -s ${kernel_headers}/include/generated/uapi/linux/version.h ${kernel_headers}/include/linux/version.h
+  sudo yum install "kernel-devel-uname-r == $(uname -r)"
+fi
 
-## portainer
-ADDHOSTNAME="portainer.$TDS_DOMAINNAME portainer"
-printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
+# Install and setup docker & docker-compose
+  echo "#### Install and setup docker & docker-compose..."
+if [ $OS = "centos" ]; then
+  yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  yum update && yum upgrade
+  yum install -y docker-ce
+elif [  $OS = "Ubuntu" ]; then
+  sudo apt-get install apt-transport-https ca-certificates gnupg-agent software-properties-common
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  sudo apt-get update
+  sudo apt-get install docker-ce docker-ce-cli containerd.io
+fi
+  sudo curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  sudo chmod +x /usr/local/bin/docker-compose
+  sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+  sudo systemctl enable docker.service
 
-## mailhog
-ADDHOSTNAME="mail.$TDS_DOMAINNAME mail mailhog.$TDS_DOMAINNAME mailhog"
-printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
 
-## gitea
-ADDHOSTNAME="gitea.$TDS_DOMAINNAME git.$TDS_DOMAINNAME gitea git"
-printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
+# Install cockpit for browser based server management
+  echo "#### Install cockpit for browser based server management..."
+if [ $OS = "centos" ]; then
+  sudo yum install -y cockpit cockpit-packagekit cockpit-storaged cockpit-system cockpit-docker
+  sudo systemctl enable --now cockpit.socket
+elif [  $OS = "Ubuntu" ]; then
+  sudo apt-get install -y cockpit cockpit-system cockpit-ws cockpit-dashboard cockpit-packagekit cockpit-storaged cockpit-docker
+fi
+  sudo systemctl enable --now cockpit.socket
+  sudo firewall-cmd --permanent --zone=public --add-service=cockpit
+  sudo firewall-cmd --reload
 
-## phpMyAdmin
-ADDHOSTNAME="pma.$TDS_DOMAINNAME pma"
-printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
+# Install bash-it framework for easier shell work (optional... but nice!)
+  echo "#### Install bash-it framework for easier shell work (optional... but nice!)"
+  git clone --depth=1 https://github.com/Bash-it/bash-it.git .bash_it
+  cd .bash_it/
+  start-container.sh --silent
+  bash-it enable alias vim systemd git docker-compose docker curl
+  bash-it enable completion ssh git_flow git docker-compose docker
+  bash-it enable plugin ssh less-pretty-cat git-subrepo git extract edit-mode-vi docker docker-compose
 
-## drone
-ADDHOSTNAME="drone.$TDS_DOMAINNAME drone ci.$TDS_DOMAINNAME ci"
-printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
-
-## dashboard
-ADDHOSTNAME="dashboard.$TDS_DOMAINNAME dashboard"
-printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
-
-## devshop
-ADDHOSTNAME="devshop.$TDS_DOMAINNAME devshop"
-printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
-echo "######  3.Create and start containers"
-docker-compose up -d
-
-echo "######  4.Setup ssh keys in devshop"
-docker exec -it --user=1000 devshop ssh-keygen -q -t rsa -N "" -f /var/aegir/.ssh/id_rsa
-docker exec -it --user=1000 devshop drush @hostmaster vset devshop_public_key "$(docker exec -it --user=1000 devshop cat /var/aegir/.ssh/id_rsa.pub)" -y --yes
-
-echo "######  Cleanup installation environment"
-
-#unset $TDS_BRANDING_LOGO_URL
-#unset $TDS_BRANDING_COMPANY_NAME
-#unset $TDS_BRANDING_INFO_EMAIL
-#
-#unset $TDS_CONFIG_DIR
-#unset $TDS_VOLUMEDIR
-#unset $TDS_BACKUPDIR
-#unset $TDS_DOMAINNAME
-#unset $TDS_TIMEZONE
-#
-#unset $TDS_MYSQL_ROOT_PASSWORD
-#unset $TDS_MYSQL_GITEAUSER
-#unset $TDS_MYSQL_GITEAPWD
-#
-#unset $TDS_GIT_SSHPORT
-#unset $TDS_GIT_USER_UID
-#unset $TDS_GIT_USER_GID
-#unset $TDS_GIT_REPO_DIR
-#
-#unset $TDS_DEVSHOP_SSHPORT
-#
-#unset $TDS_DRONE_GITEA_SERVER
-#unset $TDS_DRONE_SERVER_HOST
-#unset $TDS_DRONE_SERVER_PROTO
-#unset $TDS_DRONE_ADMIN_USER
-#
-#unset $LOCAL_IPS
-#unset $LOCAL_IPAR
-#unset $IP
-
-echo "######  Finished"
+# Clone Team Development Server and setup containers
+  echo "#### Clone Team Development Server and setup containers"
+  sudo git clone https://github.com/metalbote/team-development-server.git /var/team-development-server
+  cd /var/team-development-server
+  bash ./scripts/start-container.sh

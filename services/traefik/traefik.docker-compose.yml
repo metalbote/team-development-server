@@ -1,0 +1,48 @@
+version: "3.6"
+services:
+
+  #-- Main Infrastructure
+
+  tds_proxy:
+    env_file: .env
+    image: traefik:latest
+    hostname: proxy
+    domainname: ${TDS_DOMAINNAME}
+    container_name: "tds_proxy"
+    restart: always
+    command: --web --api --docker --docker.domain=${TDS_DOMAINNAME}
+    ports:
+      - 80:80/tcp
+      - 443:443/tcp
+      - 8080:8080/tcp
+    networks:
+      private:
+        aliases:
+          - tds_proxy
+      public:
+        aliases:
+          - proxy.${TDS_DOMAINNAME}
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./config/traefik.toml:/traefik.toml"
+      # - "./config/acme.json:/acme.json"
+      - "./logs/access_traefik.log:/var/log/access_traefik.log"
+      - "./logs/traefik.log:/var/log/traefik.log"
+      - "./certs/:/certs/"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "tds_public"
+      traefik.port: "8080"
+      traefik.backend: "tds_proxy"
+      traefik.sub.frontend.headers.SSLRedirect: "true"
+      traefik.sub.frontend.entryPoints: "http,https"
+      traefik.sub.frontend.passHostHeader: "true"
+      traefik.sub.frontend.auth.basic: "${TDS_TRAEFIK_DASHBOARD_USER}:${TDS_TRAEFIK_DASHBOARD_HTPASSWD}"
+      traefik.sub.frontend.rule: "Host: proxy.${TDS_DOMAINNAME}"
+
+networks:
+  public:
+    driver: bridge
+    name: tds_public
+  private:
+    name: tds_private

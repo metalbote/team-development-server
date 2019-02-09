@@ -1,0 +1,41 @@
+version: "3.6"
+services:
+
+  tds_portainer:
+    env_file: .env
+    image: portainer/portainer:latest
+    container_name: "tds_portainer"
+    restart: always
+    command: -H unix:///var/run/docker.sock --logo "${TDS_PORTAINER_LOGO_URL}"
+    networks:
+      private:
+        aliases:
+          - tds_portainer
+      public:
+        aliases:
+          - portainer.${TDS_DOMAINNAME}
+    environment:
+      TZ: "${TDS_PORTAINER_TIMEZONE}"
+    external_links:
+      - tds_proxy
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./data:/data"
+      - "./config/templates/templates.json:/templates.json"
+    labels:
+      traefik.enable: "true"
+      traefik.backend: "portainer"
+      traefik.docker.network: "tds_public"
+      traefik.port: "9000"
+      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.frontend.entryPoints: "http,https"
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.rule: "Host: portainer.${TDS_DOMAINNAME}, www.portainer.${TDS_DOMAINNAME}"
+
+networks:
+  public:
+    external:
+      name: tds_public
+  private:
+    external:
+      name: tds_private

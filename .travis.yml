@@ -5,26 +5,8 @@ language: bash
 
 sudo: required
 
-services:
-  - docker
-
-addons:
-  apt:
-    packages:
-      - docker-ce
-
-before_install:
-  - sudo apt-get update
-  - cp ./example.env ./.env
-
 install:
   - bash install.sh
 
-
 script:
-  - bash tests/run-simple-tests.sh
-
-after_script:
-  - bash uninstall.sh
-
-
+  - bash tests/container-run-test.sh
