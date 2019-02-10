@@ -11,7 +11,7 @@ sudo mkdir --p $TDS_REPO_DIR >> ./install.log
 sudo chown -R $TDS_GITEA_USER_UID:$TDS_GITEA_USER_GID $TDS_REPO_DIR >> ./install.log
 
 echo -e "\e[32m#### Generate wildcard certificate...\e[0m" 2>&1 | tee ./setup.log
-sudo bash /var/team-development-server/create-certs.sh >> ./install.log
+sudo bash /var/team-development-server/create-certs.sh
 
 echo -e "\e[32m#### Create empty log files...\e[0m" 2>&1 | tee ./setup.log
 sudo mkdir --p /var/team-development-server/services/traefik/logs >> ./install.log
