@@ -62,7 +62,7 @@ fi
 echo "#### Install vm support packages..."
 if [ $OS = "centos" ]; then
   yum install -y open-vm-tools
-elif [  $OS = "Ubuntu" ]; then
+elif [  $OS = "ubuntu" ]; then
   sudo apt-get install open-vm-tools
 fi
 
@@ -81,7 +81,7 @@ if [ $OS = "centos" ]; then
   yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
   yum update && yum upgrade
   yum install -y docker-ce
-elif [  $OS = "Ubuntu" ]; then
+elif [  $OS = "ubuntu" ]; then
   sudo apt-get install apt-transport-https ca-certificates gnupg-agent software-properties-common
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
   sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
@@ -99,7 +99,7 @@ fi
 if [ $OS = "centos" ]; then
   sudo yum install -y cockpit cockpit-packagekit cockpit-storaged cockpit-system cockpit-docker
   sudo systemctl enable --now cockpit.socket
-elif [  $OS = "Ubuntu" ]; then
+elif [  $OS = "ubuntu" ]; then
   sudo apt-get install -y cockpit cockpit-system cockpit-ws cockpit-dashboard cockpit-packagekit cockpit-storaged cockpit-docker
 fi
   sudo systemctl enable --now cockpit.socket
