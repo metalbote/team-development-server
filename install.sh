@@ -52,8 +52,10 @@ fi
 # Install base packages
   echo -e "\e[32m#### Install base packages...\e[0m" 2>&1 | tee ./install.log
 if [ $OS = "centos" ]; then
-  yum install -y epel-release >> ./install.log
-  yum install -y mc curl net-tools wget yum-utils vim git samba-client samba-common cifs-utils httpd-tools >> ./install.log
+  sudo yum install -y epel-release >> ./install.log
+  sudo yum update -y >> ./install.log
+  sudo yum upgrade -y >> ./install.log
+  sudo yum install -y mc curl net-tools wget yum-utils vim git samba-client samba-common cifs-utils httpd-tools >> ./install.log
 elif [  $OS = "ubuntu" ]; then
   sudo apt-get install -y mc curl net-tools wget vim git smbclient cifs-utils samba-common apache2-utils >> ./install.log
 fi
@@ -61,7 +63,7 @@ fi
 # Install vm support packages
 echo -e "\e[32m#### Install vm support packages...\e[0m" 2>&1 | tee ./install.log
 if [ $OS = "centos" ]; then
-  yum install -y open-vm-tools >> ./install.log
+  sudo yum install -y open-vm-tools >> ./install.log
 elif [  $OS = "ubuntu" ]; then
   sudo apt-get install -y open-vm-tools >> ./install.log
 fi
@@ -69,7 +71,7 @@ fi
 if [ $OS = "centos" ]; then
 # Install and prepare kernel environment
   echo -e "\e[32m#### Install and prepare kernel environment...\e[0m" 2>&1 | tee ./install.log
-  yum group install -y "Development Tools" >> ./install.log
+  sudo yum groupinstall -y "Development Tools" >> ./install.log
   export kernel_headers=`ls -hd /usr/src/kernels/3*`
   sudo ln -s ${kernel_headers}/include/generated/uapi/linux/version.h ${kernel_headers}/include/linux/version.h >> ./install.log
   sudo yum install -y "kernel-devel-uname-r == $(uname -r)" >> ./install.log
