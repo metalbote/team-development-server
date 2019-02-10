@@ -55,7 +55,7 @@ if [ $OS = "centos" ]; then
   yum install -y epel-release
   yum install mc curl net-tools wget yum-utils vim git samba-client samba-common cifs-utils httpd-tools
 elif [  $OS = "ubuntu" ]; then
-  sudo apt-get install mc curl net-tools wget yum-utils vim git samba-client samba-common cifs-utils httpd-tools
+  sudo apt-get install mc curl net-tools wget vim git smbclient cifs-utils samba-common apache2-utils
 fi
 
 # Install vm support packages
@@ -85,7 +85,7 @@ elif [  $OS = "ubuntu" ]; then
   sudo apt-get install apt-transport-https ca-certificates gnupg-agent software-properties-common
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
   sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-  sudo apt-get update
+  sudo apt-get update && sudo apt-get upgrade
   sudo apt-get install docker-ce docker-ce-cli containerd.io
 fi
   sudo curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
@@ -108,7 +108,7 @@ fi
 
 # Install bash-it framework for easier shell work (optional... but nice!)
   echo "#### Install bash-it framework for easier shell work (optional... but nice!)"
-  git clone --depth=1 https://github.com/Bash-it/bash-it.git .bash_it
+  git clone --depth=1 -q https://github.com/Bash-it/bash-it.git .bash_it
   cd .bash_it/
   start-containers.sh --silent
   bash-it enable alias vim systemd git docker-compose docker curl
@@ -117,7 +117,9 @@ fi
 
 # Clone Team Development Server and setup containers
   echo "#### Clone Team Development Server and setup containers"
-  sudo git clone https://github.com/metalbote/team-development-server.git /var/team-development-server
+  sudo git clone --depth=1 -q https://github.com/metalbote/team-development-server.git /var/team-development-server
+  cd /var/team-development-server
+  ls -la
 
 echo "#### Finished Installation"
 

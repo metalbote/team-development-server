@@ -4,14 +4,27 @@ dist: xenial
 language: bash
 
 sudo: required
+git:
+  depth: 1
 
-install:
-  - sudo -H bash install.sh
-  - sudo -H bash start-containers.sh
+stages:
+  - install
+  - setup
+  - test
 
-script:
-  - bash tests/container-run-test.sh
-  - bash tests/container-reachable-test.sh
-
+jobs:
+  include:
+    - stage: install
+      script:
+        - sudo -H bash install.sh
+    - stage: setup
+      script:
+        - cd /var/team-development-server
+        - sudo bash start-containers.sh
+    - stage: test
+      script:
+        - cd /var/team-development-server
+        - bash tests/container-run-test.sh
+        - bash tests/container-reachable-test.sh
 
 
