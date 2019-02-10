@@ -4,6 +4,7 @@ echo -e "\e[32m####  Creating certs for traefik service\e[0m" 2>&1 | tee ./setup
 source /var/team-development-server/.env
 
 TDS_CERTDIR="/var/team-development-server/services/traefik/certs"
+sudo mkdir --p $TDS_BACKUP_DIR >> ./install.log
 
 sudo openssl genrsa -out "${TDS_CERTDIR}/wildcard.key" 2048
 sudo openssl req -new -subj "/C=${TDS_CERT_COUNTRY}/ST=${TDS_CERT_STATE}/O=${TDS_CERT_COMPANY_NAME}/localityName=${TDS_CERT_CITY}/commonName=${TDS_CERT_DOMAIN}/organizationalUnitName=${TDS_CERT_DOMAIN}/emailAddress=${TDS_CERT_EMAIL}" -key "${TDS_CERTDIR}/wildcard.key" -out "${TDS_CERTDIR}/wildcard.csr"
