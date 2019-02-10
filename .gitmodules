@@ -1,0 +1,3 @@
+[submodule "services/portainer/config/templates"]
+	path = services/portainer/config/templates
+	url = https://github.com/metalbote/templates.git
