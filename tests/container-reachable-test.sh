@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 sleep 3m
-source ./../.env
+source /var/team-development-server/.env
 
 echo "###### Are all dockers reachable via http?"
 

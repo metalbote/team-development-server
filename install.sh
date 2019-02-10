@@ -110,7 +110,7 @@ fi
   echo "#### Install bash-it framework for easier shell work (optional... but nice!)"
   git clone --depth=1 https://github.com/Bash-it/bash-it.git .bash_it
   cd .bash_it/
-  start-container.sh --silent
+  start-containers.sh --silent
   bash-it enable alias vim systemd git docker-compose docker curl
   bash-it enable completion ssh git_flow git docker-compose docker
   bash-it enable plugin ssh less-pretty-cat git-subrepo git extract edit-mode-vi docker docker-compose
@@ -118,5 +118,13 @@ fi
 # Clone Team Development Server and setup containers
   echo "#### Clone Team Development Server and setup containers"
   sudo git clone https://github.com/metalbote/team-development-server.git /var/team-development-server
-  cd /var/team-development-server
-  bash ./scripts/start-container.sh
+
+echo "#### Finished Installation"
+
+echo "--------------------------------------------------"
+echo " Please change to \"/var/team-development-server"\"
+echo " and edit the \".env\" file to your needs.        "
+echo "                                                  "
+echo " Run \"sh start-containers.sh\" to spin up        "
+echo "--------------------------------------------------"
+echo ""

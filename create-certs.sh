@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 echo "######  Creating certs for traefik service"
-source ./../.env
+source /var/team-development-server/.env
 
-TDS_CERTDIR="./../services/traefik/certs"
+TDS_CERTDIR="/var/team-development-server/services/traefik/certs"
 
 openssl genrsa -out "${TDS_CERTDIR}/wildcard.key" 2048
 openssl req -new -subj "/C=${TDS_CERT_COUNTRY}/ST=${TDS_CERT_STATE}/O=${TDS_CERT_COMPANY_NAME}/localityName=${TDS_CERT_CITY}/commonName=${TDS_CERT_DOMAIN}/organizationalUnitName=${TDS_CERT_DOMAIN}/emailAddress=${TDS_CERT_EMAIL}" -key "${TDS_CERTDIR}/wildcard.key" -out "${TDS_CERTDIR}/wildcard.csr"
