@@ -1,7 +1,9 @@
 #!/bin/bash
 
 ## script for update exisiting installs
-
-docker-compose -f /var/team-development-server/docker-compose.yml stop
-docker-compose -f /var/team-development-server/docker-compose.yml pull
-docker-compose -f /var/team-development-server/docker-compose.yml up -d
+echo -e "\e[32m#### Stop all team-development-server containers...\e[0m" 2>&1 | tee ./setup.log
+sudo docker-compose -f /var/team-development-server/docker-compose.yml stop
+echo -e "\e[32m#### Pull all team-development-server images...\e[0m" 2>&1 | tee ./setup.log
+sudo docker-compose -f /var/team-development-server/docker-compose.yml pull
+echo -e "\e[32m#### Restart all team-development-server.containers...\e[0m" 2>&1 | tee ./setup.log
+sudo docker-compose -f /var/team-development-server/docker-compose.yml up -d

@@ -8,6 +8,8 @@ sudo: required
 git:
   depth: 1
 
+before_install:
+  - sudo wget https://raw.githubusercontent.com/metalbote/team-development-server/master/install.sh
 
 install:
   - sudo -H bash install.sh

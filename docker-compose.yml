@@ -268,7 +268,7 @@ services:
       MYSQL_USER: ${TDS_MYSQL_PHPCENSOR_USER}
       MYSQL_PASSWORD: ${TDS_MYSQL_PHPCENSOR_PASSWORD}
     volumes:
-      - "./mysql:/var/lib/mysql"
+      - "./services/php-censor/mysql:/var/lib/mysql"
     labels:
       traefik.enable: "false"
 
