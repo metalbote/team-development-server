@@ -11,6 +11,7 @@ sudo mkdir --p $TDS_REPO_DIR >> ./install.log
 sudo chown -R $TDS_GITEA_USER_UID:$TDS_GITEA_USER_GID $TDS_REPO_DIR >> ./install.log
 
 echo -e "\e[32m#### Generate wildcard certificate...\e[0m" 2>&1 | tee ./setup.log
+sudo mkdir --p /var/team-development-server/services/traefik/certs
 sudo openssl genrsa -out "/var/team-development-server/services/traefik/certs/wildcard.key" 2048
 sudo openssl req -new -subj "/C=${TDS_CERT_COUNTRY}/ST=${TDS_CERT_STATE}/O=${TDS_CERT_COMPANY_NAME}/localityName=${TDS_CERT_CITY}/commonName=${TDS_CERT_DOMAIN}/organizationalUnitName=${TDS_CERT_DOMAIN}/emailAddress=${TDS_CERT_EMAIL}" -key "/var/team-development-server/services/traefik/certs/wildcard.key" -out "/var/team-development-server/services/traefik/certs/wildcard.csr"
 sudo openssl x509 -req -days 365 -in "/var/team-development-server/services/traefik/certs/wildcard.csr" -signkey "/var/team-development-server/services/traefik/certs/wildcard.key" -out "/var/team-development-server/services/traefik/certs/wildcard.crt"
