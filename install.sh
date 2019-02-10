@@ -54,7 +54,7 @@ fi
 if [ $OS = "centos" ]; then
   yum install -y epel-release
   yum install mc curl net-tools wget yum-utils vim git samba-client samba-common cifs-utils httpd-tools
-elif [  $OS = "Ubuntu" ]; then
+elif [  $OS = "ubuntu" ]; then
   sudo apt-get install mc curl net-tools wget yum-utils vim git samba-client samba-common cifs-utils httpd-tools
 fi
 
