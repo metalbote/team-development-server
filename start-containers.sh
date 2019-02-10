@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 
 echo "## 1/4 ## Load environment file aka config..."
@@ -10,11 +10,12 @@ sudo mkdir --p $TDS_REPO_DIR
 sudo chown -R $TDS_GITEA_USER_UID:$TDS_GITEA_USER_GID $TDS_REPO_DIR
 
 echo "## 3/4 ## Generate wildcard certificate..."
-sudo sh /var/team-development-server/create-certs.sh
+sudo bash /var/team-development-server/create-certs.sh
 
 echo "## 3/4 ## Create empty log files..."
-touch /var/team-development-server/services/traefik/logs/access_traefik.log
-touch /var/team-development-server/services/traefik/logs/traefik.log
+sudo mkdir --p /var/team-development-server/services/traefik/logs
+sudo touch /var/team-development-server/services/traefik/logs/access_traefik.log
+sudo touch /var/team-development-server/services/traefik/logs/traefik.log
 
 echo "## 4/4 ## Spin up Containers ..."
 

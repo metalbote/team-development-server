@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 echo "######  Creating certs for traefik service"
 source /var/team-development-server/.env

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 echo "=================================================="
 echo " Welcome to the Team Development Server Installer "
@@ -52,18 +52,18 @@ fi
 # Install base packages
   echo "#### Install base packages..."
 if [ $OS = "centos" ]; then
-  yum install -y epel-release
-  yum install mc curl net-tools wget yum-utils vim git samba-client samba-common cifs-utils httpd-tools
+  yum install -q -y epel-release
+  yum install -q -y mc curl net-tools wget yum-utils vim git samba-client samba-common cifs-utils httpd-tools
 elif [  $OS = "ubuntu" ]; then
-  sudo apt-get install mc curl net-tools wget vim git smbclient cifs-utils samba-common apache2-utils
+  sudo apt-get -q install -y mc curl net-tools wget vim git smbclient cifs-utils samba-common apache2-utils
 fi
 
 # Install vm support packages
 echo "#### Install vm support packages..."
 if [ $OS = "centos" ]; then
-  yum install -y open-vm-tools
+  yum install -q -y open-vm-tools
 elif [  $OS = "ubuntu" ]; then
-  sudo apt-get install open-vm-tools
+  sudo apt-get -q install -y open-vm-tools
 fi
 
 if [ $OS = "centos" ]; then
@@ -72,7 +72,7 @@ if [ $OS = "centos" ]; then
   yum group install "Development Tools"
   export kernel_headers=`ls -hd /usr/src/kernels/3*`
   sudo ln -s ${kernel_headers}/include/generated/uapi/linux/version.h ${kernel_headers}/include/linux/version.h
-  sudo yum install "kernel-devel-uname-r == $(uname -r)"
+  sudo yum install -q -y "kernel-devel-uname-r == $(uname -r)"
 fi
 
 # Install and setup docker & docker-compose
@@ -80,27 +80,28 @@ fi
 if [ $OS = "centos" ]; then
   yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
   yum update && yum upgrade
-  yum install -y docker-ce
+  yum install -q -y docker-ce
 elif [  $OS = "ubuntu" ]; then
   sudo apt-get install apt-transport-https ca-certificates gnupg-agent software-properties-common
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
   sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-  sudo apt-get update && sudo apt-get upgrade
-  sudo apt-get install docker-ce docker-ce-cli containerd.io
+  sudo apt-get -q update -y && sudo apt-get -q upgrade -y
+  sudo apt-get -q install -y docker-ce docker-ce-cli containerd.io
 fi
   sudo curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
   sudo chmod +x /usr/local/bin/docker-compose
   sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
   sudo systemctl enable docker.service
+  sudo systemctl start docker.service
 
 
 # Install cockpit for browser based server management
   echo "#### Install cockpit for browser based server management..."
 if [ $OS = "centos" ]; then
-  sudo yum install -y cockpit cockpit-packagekit cockpit-storaged cockpit-system cockpit-docker
+  sudo yum install -q -y cockpit cockpit-packagekit cockpit-storaged cockpit-system cockpit-docker
   sudo systemctl enable --now cockpit.socket
 elif [  $OS = "ubuntu" ]; then
-  sudo apt-get install -y cockpit cockpit-system cockpit-ws cockpit-dashboard cockpit-packagekit cockpit-storaged cockpit-docker
+  sudo apt-get -q install -y cockpit cockpit-system cockpit-ws cockpit-dashboard cockpit-packagekit cockpit-storaged cockpit-docker
 fi
   sudo systemctl enable --now cockpit.socket
   sudo firewall-cmd --permanent --zone=public --add-service=cockpit
@@ -118,8 +119,6 @@ fi
 # Clone Team Development Server and setup containers
   echo "#### Clone Team Development Server and setup containers"
   sudo git clone --depth=1 -q https://github.com/metalbote/team-development-server.git /var/team-development-server
-  cd /var/team-development-server
-  ls -la
 
 echo "#### Finished Installation"
 
