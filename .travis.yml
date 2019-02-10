@@ -7,9 +7,11 @@ sudo: required
 
 install:
   - sudo -H bash install.sh
+  - sudo -H bash start-containers.sh
 
 script:
   - bash tests/container-run-test.sh
+  - bash tests/container-reachable-test.sh
 
 
 
