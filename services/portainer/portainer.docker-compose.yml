@@ -20,7 +20,7 @@ services:
       - tds_proxy
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - "./data:/data"
+      - "tds-portainer-data:/data"
       - "./config/templates/templates.json:/templates.json"
     labels:
       traefik.enable: "true"
@@ -31,6 +31,9 @@ services:
       traefik.frontend.entryPoints: "http,https"
       traefik.frontend.passHostHeader: "true"
       traefik.frontend.rule: "Host: portainer.${TDS_DOMAINNAME}, www.portainer.${TDS_DOMAINNAME}"
+
+volumes:
+  tds-portainer-data:
 
 networks:
   public:

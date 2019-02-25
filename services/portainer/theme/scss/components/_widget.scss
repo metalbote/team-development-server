@@ -1,0 +1,16 @@
+.widget {
+  border-radius: 0;
+}
+
+
+.boxselector_wrapper {
+  input[type=radio]:checked + label {
+    background: $custom-control-indicator-checked-bg;
+    border-color: $custom-control-indicator-checked-border-color;
+
+    &:after {
+      color: $custom-control-indicator-checked-color;
+      border: 2px solid $custom-control-indicator-checked-border-color;
+    }
+  }
+}

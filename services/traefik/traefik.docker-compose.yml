@@ -25,9 +25,7 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "./config/traefik.toml:/traefik.toml"
-      # - "./config/acme.json:/acme.json"
-      - "./logs/access_traefik.log:/var/log/access_traefik.log"
-      - "./logs/traefik.log:/var/log/traefik.log"
+    # - "./config/acme.json:/acme.json"
       - "./certs/:/certs/"
     labels:
       traefik.enable: "true"

@@ -10,25 +10,35 @@ services:
     restart: always
     stop_grace_period: 30s
     ports:
+      - 3000:3000/tcp
       - ${TDS_GITEA_SSHPORT}:22/tcp
     networks:
       private:
         aliases:
           - gitea.${TDS_DOMAINNAME}
+          - tds_gitea
           - gitea
       public:
         aliases:
-          - git.${TDS_DOMAINNAME}
+          - gitea.${TDS_DOMAINNAME}
     external_links:
       - tds_proxy
     environment:
       APP_NAME: "${TDS_BRANDING_NAME} GIT Versioning Server"
-      RUN_MODE: dev
+      RUN_MODE: prod
+      PROTOCOL: "http"
+      DOMAIN: gitea.${TDS_DOMAINNAME}
+      ROOT_URL: "http://gitea.${TDS_DOMAINNAME}:3000"
+      HTTP_ADDR: 0.0.0.0
+      HTTP_PORT: 3000
+      DISABLE_SSH: "FALSE"
+      START_SSH_SERVER: "TRUE"
       SSH_DOMAIN: gitea.${TDS_DOMAINNAME}
       SSH_PORT: ${TDS_GITEA_SSHPORT}
-      DISABLE_SSH: "false"
-      HTTP_PORT: 443
-      ROOT_URL: "https://gitea.${TDS_DOMAINNAME}"
+      SSH_LISTEN_PORT: ${TDS_GITEA_SSHPORT}
+      OFFLINE_MODE: "FALSE"
+      ENABLE_GZIP: "TRUE"
+      LANDING_PAGE: explore
       DB_TYPE: mysql
       DB_HOST: tds_giteadb:3306
       DB_NAME: ${TDS_MYSQL_GITEA_DATABASE}
@@ -40,17 +50,15 @@ services:
       USER_UID: ${TDS_GITEA_USER_UID}
       USER_GID: ${TDS_GITEA_USER_GID}
     volumes:
-      - "./data:/data"
-      - "./config/style/css:/data/gitea/public/css"
-      - "./config/style/img:/data/gitea/public/img"
+      - "tds-gitea-data:/data"
+      - "./public:/data/gitea/public"
       - "${TDS_REPO_DIR}:/data/git/repositories"
     labels:
       traefik.enable: "true"
       traefik.backend: "tds_gitea"
       traefik.docker.network: "tds_public"
       traefik.port: "3000"
-      traefik.frontend.headers.SSLRedirect: "true"
-      traefik.frontend.entryPoints: "http,https"
+      traefik.frontend.entryPoints: "http"
       traefik.frontend.passHostHeader: "true"
       traefik.frontend.rule: "Host: gitea.${TDS_DOMAINNAME}, www.gitea.${TDS_DOMAINNAME}"
 
@@ -66,15 +74,20 @@ services:
       private:
         aliases:
           - tds_giteadb
+          - giteadb
     environment:
       MYSQL_ROOT_PASSWORD: ${TDS_MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${TDS_MYSQL_GITEA_DATABASE}
       MYSQL_USER: ${TDS_MYSQL_GITEA_USER}
       MYSQL_PASSWORD: ${TDS_MYSQL_GITEA_PASSWORD}
     volumes:
-      - "./mysql:/var/lib/mysql"
+      - "tds-giteadb-data:/var/lib/mysql"
     labels:
       traefik.enable: "false"
+
+volumes:
+  tds-gitea-data:
+  tds-giteadb-data:
 
 networks:
   public:

@@ -1,0 +1,33 @@
+.breadcrumb-links {
+  display: inline-block;
+  height: 39px;
+  line-height: 39px;
+  float: right;
+  clear: both;
+
+  .pull-left {
+    display: none;
+  }
+
+  a[ui-sref="portainer.account"],
+  a[ui-sref="portainer.auth({logout: true})"] {
+    width: 39px;
+    display: inline-block;
+    overflow: hidden;
+    margin: 0 !important;
+    text-align: center;
+
+    i {
+      width: 39px;
+    }
+
+    &:hover,
+    &:focus {
+      background: $navbar-link-hover-bg;
+    }
+  }
+
+  a[ui-sref="portainer.account"] .fa-wrench:before {
+    content: "\f2bd";
+  }
+}

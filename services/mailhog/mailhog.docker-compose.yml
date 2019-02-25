@@ -19,7 +19,7 @@ services:
     external_links:
       - tds_proxy
     volumes:
-      - "./data/mails:/maildir"
+      - "tds-mailhog-data:/maildir"
     labels:
       traefik.enable: "true"
       traefik.backend: "tds_mailhog"
@@ -29,6 +29,9 @@ services:
       traefik.frontend.entryPoints: "http,https"
       traefik.frontend.passHostHeader: "true"
       traefik.frontend.rule: "Host: mail.${TDS_DOMAINNAME}, www.mail.${TDS_DOMAINNAME}"
+
+volumes:
+  tds-mailhog-data:
 
 networks:
   public:

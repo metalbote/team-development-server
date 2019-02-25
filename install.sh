@@ -6,7 +6,6 @@ echo -e "\e[32m                                                  \e[0m" &>> ./in
 echo -e "\e[32m==================================================\e[0m" &>> ./install.log
 
 
-
 # Fail if not running as root (sudo)
 if [ $EUID -ne 0 ]; then
     echo -e "\e[32m This script must be run as root.  Try 'sudo -H bash install.sh'.\e[0m" 1>&2
@@ -43,22 +42,46 @@ echo -e "\e[32m Hostname: $HOSTNAME_FQDN                         \e[0m" 2>&1 | t
 echo -e "\e[32m--------------------------------------------------\e[0m" 2>&1 | tee ./install.log
 echo -e "\e[32m\e[0m" 2>&1 | tee ./install.log
 
-if [ $OS = "opensuse-tumbleweed-kubic" ]; then
-  echo -e "\e[32mRunning kubic setup...run following command in transactional-update shell\e[0m" 2>&1 | tee ./install.log
-  echo -e "\e[32mcp -r ./cloud-init-config / && exit\e[0m" 2>&1 | tee ./install.log
-  exit
-fi
-
 # Install base packages
   echo -e "\e[32m#### Install base packages...\e[0m" 2>&1 | tee ./install.log
 if [ $OS = "centos" ]; then
+  sudo rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY*
+
+# Install and prepare kernel environment
+  echo -e "\e[32m#### Install and prepare kernel environment...\e[0m" 2>&1 | tee ./install.log
+  sudo yum -y groupinstall 'Development Tools' >> ./install.log
+  export kernel_headers=`ls -hd /usr/src/kernels/3*`
+  sudo ln -s ${kernel_headers}/include/generated/uapi/linux/version.h ${kernel_headers}/include/linux/version.h >> ./install.log
+  sudo yum install -y "kernel-devel-uname-r == $(uname -r)" >> ./install.log
+
   sudo yum install -y epel-release >> ./install.log
   sudo yum update -y >> ./install.log
   sudo yum upgrade -y >> ./install.log
-  sudo yum install -y mc curl net-tools wget yum-utils vim git samba-client samba-common cifs-utils httpd-tools >> ./install.log
+  sudo yum install -y setroubleshoot-server sos mc curl net-tools wget yum-utils vim git samba-client samba-common cifs-utils httpd-tools duplicity >> ./install.log
 elif [  $OS = "ubuntu" ]; then
-  sudo apt-get install -y mc curl net-tools wget vim git smbclient cifs-utils samba-common apache2-utils >> ./install.log
+  sudo apt-get install -y mc openssh-server curl net-tools wget vim git smbclient cifs-utils samba-common apache2-utils >> ./install.log
 fi
+
+# Setup ssh port to 1022
+#echo -e "\e[32m#### Setup ssh port to 1022...\e[0m" 2>&1 | tee ./install.log
+#sudo echo "port 1022" >> /etc/ssh/sshd_config
+#sudo echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
+#sudo firewall-cmd --permanent --zone=public --add-port=1022/tcp
+# sudo semanage port -a -t ssh_port_t -p tcp 2292
+#systemctl restart sshd
+
+# Setup samba
+#echo -e "\e[32m#### Setup samba...\e[0m" 2>&1 | tee ./install.log
+#sudo echo "username=${TDS_SAMBA_USER}" > /root/.samba.cred
+#sudo echo "password=${TDS_SAMBA_PASSWD}" >> /root/.samba.cred
+#sudo echo "domain=${TDS_SAMBA_DOMAIN}" >> /root/.samba.cred
+#sudo echo "//${TDS_SAMBA_SERVER}/${TDS_SAMBA_SHARE}  ${TDS_SAMBA_MOUNT} cifs    user,uid=1000,gid=1000,rw,nounix,iocharset=utf8,suid,credentials=/root/.samba.cred 0 0" >> /etc/fstab
+
+# Setup Mysql conf
+#echo -e "\e[32m#### Setup mysql.conf...\e[0m" 2>&1 | tee ./install.log
+#sudo echo "[client]" > /root/.my.cnf
+#sudo echo 'user="root"' >> /root/.my.cnf
+#sudo echo "password=${TDS_MYSQL_ROOT_PASSWORD}" >> /root/.my.cnf
 
 # Install vm support packages
 echo -e "\e[32m#### Install vm support packages...\e[0m" 2>&1 | tee ./install.log
@@ -68,21 +91,12 @@ elif [  $OS = "ubuntu" ]; then
   sudo apt-get install -y open-vm-tools >> ./install.log
 fi
 
-if [ $OS = "centos" ]; then
-# Install and prepare kernel environment
-  echo -e "\e[32m#### Install and prepare kernel environment...\e[0m" 2>&1 | tee ./install.log
-  sudo yum groupinstall -y "Development Tools" >> ./install.log
-  export kernel_headers=`ls -hd /usr/src/kernels/3*`
-  sudo ln -s ${kernel_headers}/include/generated/uapi/linux/version.h ${kernel_headers}/include/linux/version.h >> ./install.log
-  sudo yum install -y "kernel-devel-uname-r == $(uname -r)" >> ./install.log
-fi
-
 # Install and setup docker & docker-compose
   echo -e "\e[32m#### Install and setup docker & docker-compose...\e[0m" 2>&1 | tee ./install.log
 if [ $OS = "centos" ]; then
-  yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo >> ./install.log
-  yum update >> ./install.log
-  yum upgrade >> ./install.log
+  yum-config-manager -y --add-repo https://download.docker.com/linux/centos/docker-ce.repo >> ./install.log
+  yum update -y >> ./install.log
+  yum upgrade -y >> ./install.log
   yum install -y docker-ce >> ./install.log
 elif [  $OS = "ubuntu" ]; then
   sudo apt-get install -y apt-transport-https ca-certificates gnupg-agent software-properties-common >> ./install.log
@@ -102,9 +116,11 @@ fi
 # Install cockpit for browser based server management
   echo -e "\e[32m#### Install cockpit for browser based server management...\e[0m" 2>&1 | tee ./install.log
 if [ $OS = "centos" ]; then
-  sudo yum install -y cockpit cockpit-packagekit cockpit-storaged cockpit-system cockpit-docker >> ./install.log
+  sudo yum install -y cockpit cockpit-composer cockpit-dashboard cockpit-doc cockpit-docker cockpit-packagekit cockpit-storaged cockpit-system cockpit-ws>> ./install.log
   sudo systemctl enable --now cockpit.socket >> ./install.log
   sudo firewall-cmd --permanent --zone=public --add-service=cockpit >> ./install.log
+  sudo firewall-cmd --permanent --zone=public --add-service=http
+  sudo firewall-cmd --permanent --zone=public --add-service=https
   sudo firewall-cmd --reload >> ./install.log
 elif [  $OS = "ubuntu" ]; then
   sudo apt-get install -y cockpit cockpit-system cockpit-ws cockpit-dashboard cockpit-packagekit cockpit-storaged cockpit-docker >> ./install.log
@@ -118,14 +134,69 @@ if [ $OS = "centos" ]; then
   cd .bash_it/
   bash ./install.sh --silent >> ../install.log
   source /root/.bashrc
-  bash-it enable alias vim systemd git docker-compose docker curl >> ../install.log
-  bash-it enable completion ssh git_flow git docker-compose docker >> ../install.log
-  bash-it enable plugin ssh less-pretty-cat git-subrepo git extract edit-mode-vi docker docker-compose >> ../install.log
+  bash-it enable alias composer curl docker docker-compose general git systemd vim >> ../install.log
+  bash-it enable completion bash-it composer defaults dirs docker docker-compose drush export git git_flow packer ssh system >> ../install.log
+  bash-it enable plugin autojump base docker docker-compose edit-mode-vi extract git git-subrepo history less-pretty-cat ssh >> ../install.log
+fi
+
+
+# Setup correct hostnames for services
+  echo -e "\e[32m#### Setup correct hostnames for services\e[0m" 2>&1 | tee ./install.log
+if [ $OS = "centos" ]; then
+  sudo yum install dnsmasq bind-utils -y
+
+  ## Get main ip
+  LOCAL_IPS=$(hostname -I)
+  LOCAL_IPAR=($LOCAL_IPS)
+  IP=${LOCAL_IPAR[0]}
+
+  touch /etc/dnsmasq.hosts
+
+  ## traefik
+  ADDHOSTNAME="proxy.$TDS_DOMAINNAME proxy tds_proxy"
+  printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/dnsmasq.hosts > /dev/null;
+  printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
+
+  ## portainer
+  ADDHOSTNAME="portainer.$TDS_DOMAINNAME portainer tds_portainer"
+  printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/dnsmasq.hosts > /dev/null;
+  printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
+
+  ## mailhog
+  ADDHOSTNAME="mail.$TDS_DOMAINNAME mail mailhog.$TDS_DOMAINNAME mailhog tds_mailhog"
+  printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/dnsmasq.hosts > /dev/null;
+  printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
+
+  ## phpMyAdmin
+  ADDHOSTNAME="pma.$TDS_DOMAINNAME pma tds_pma"
+  printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/dnsmasq.hosts > /dev/null;
+  printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
+
+  ## gitea
+  ADDHOSTNAME="gitea.$TDS_DOMAINNAME gitea tds_gitea"
+  printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/dnsmasq.hosts > /dev/null;
+  printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
+
+  ## drone
+  ADDHOSTNAME="drone.$TDS_DOMAINNAME drone tds_drone"
+  printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/dnsmasq.hosts > /dev/null;
+  printf "%s\t%s\n" "$IP" "$ADDHOSTNAME" | sudo tee -a /etc/hosts > /dev/null;
+
+  systemctl stop dnsmasq
+  systemctl stop docker
+
+  TDS_DOCKER_DNS="/usr/bin/dockerd -H fd:// --dns 192.168.0.99 --dns 8.8.8.8 --dns 8.8.4.4"
+  sed -i "s|ExecStart=.*|ExecStart=--selinux-enabled ${TDS_DOCKER_DNS}|g" /usr/lib/systemd/system/docker.service;
+
+  systemctl daemon-reload
+  systemctl enable dnsmasq
+  systemctl start docker
 fi
 
 # Clone Team Development Server and setup containers
   echo -e "\e[32m#### Clone Team Development Server and setup containers\e[0m" 2>&1 | tee ./install.log
-  sudo git clone --depth=1 -q https://github.com/metalbote/team-development-server.git /var/team-development-server >> ../install.log
+  sudo git clone --depth=1 -q https://github.com/metalbote/team-development-server.git /usr/local/share/team-development-server >> ../install.log
+
 
 echo -e "\e[32m#### Finished Installation\e[0m" 2>&1 | tee ./install.log
 
@@ -136,3 +207,5 @@ echo -e "\e[32m                                                  \e[0m" 2>&1 | t
 echo -e "\e[32m Run \"sudo bash start-containers.sh\" to spin up      \e[0m" 2>&1 | tee ./install.log
 echo -e "\e[32m--------------------------------------------------\e[0m" 2>&1 | tee ./install.log
 echo -e "\e[32m\e[0m" 2>&1 | tee ./install.log
+
+cd /usr/local/share/team-development-server

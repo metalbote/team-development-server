@@ -1,0 +1,60 @@
+version: "3.6"
+services:
+
+  tds_drone:
+    env_file: .env
+    image: drone/drone:1.0.0-rc.5
+    container_name: "tds_drone"
+    restart: always
+    stop_grace_period: 30s
+    networks:
+      private:
+        aliases:
+          - drone.${TDS_DOMAINNAME}
+          - tds_drone
+      public:
+        aliases:
+          - drone.${TDS_DOMAINNAME}
+    external_links:
+      - tds_proxy
+      - tds_gitea
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./data:/data"
+    environment:
+      - DRONE_DEBUG=false
+      - DRONE_GITEA_SERVER=http://gitea.${TDS_DOMAINNAME}:3000
+      - DRONE_GITEA_URL=http://gitea.${TDS_DOMAINNAME}:3000
+      - DRONE_GITEA_PRIVATE_MODE=true
+      - DRONE_GITEA_SKIP_VERIFY=true
+      - DRONE_GIT_ALWAYS_AUTH=true
+      - DRONE_RUNNER_CAPACITY=2
+      - DRONE_RUNNER_NETWORKS=tds_public
+      - DRONE_SERVER_HOST=drone.${TDS_DOMAINNAME}
+      - DRONE_SERVER_PROTO=http
+      - DRONE_NETWORK=tds_public
+      - DRONE_TLS_AUTOCERT=false
+      - DRONE_USER_CREATE=username:${TDS_DRONE_ADMIN_USER},admin:true
+      - DRONE_LOGS_COLOR=true
+      - DRONE_LOGS_DEBUG=true
+      - DRONE_LOGS_PRETTY=true
+      - DRONE_LOGS_NOCOLOR=false
+    labels:
+      traefik.enable: "true"
+      traefik.backend: "tds_drone"
+      traefik.docker.network: "tds_public"
+      traefik.port: "80"
+      traefik.frontend.entryPoints: "http,https"
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.rule: "Host: drone.${TDS_DOMAINNAME}, www.drone.${TDS_DOMAINNAME}"
+
+volumes:
+  tds-drone-data:
+
+networks:
+  public:
+    external:
+      name: tds_public
+  private:
+    external:
+      name: tds_private

@@ -1,0 +1,27 @@
+.repository {
+  &.file {
+    &.list {
+      #repo-files-table {
+        tbody {
+          .octicon {
+            &.octicon-file-directory,
+            &.octicon-file-submodule,
+            &.octicon-file-symlink-directory {
+              color: darken($primary, 15%);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  #clone-panel {
+    .clone {
+      &.button {
+        &:first-child {
+          border-radius: 0;
+        }
+      }
+    }
+  }
+}

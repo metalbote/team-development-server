@@ -1,0 +1,14 @@
+body {
+  background: $body-bg;
+  font-family: $font-family-base;
+}
+
+a {
+  color: $link-color;
+  text-decoration: none;
+
+  &:hover,
+  &:focus {
+    color: $link-hover-color;
+  }
+}

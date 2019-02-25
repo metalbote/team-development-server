@@ -1,0 +1,25 @@
+body {
+  background: $body-bg;
+  font-family: $font-family-base;
+}
+
+#page-wrapper {
+  padding-left: 40px;
+}
+
+.page-wrapper {
+  background-image: url('/images/logo.png');
+  background-repeat: no-repeat;
+  background-position: center 100px;
+}
+
+
+a {
+  color: $link-color;
+  text-decoration: none;
+
+  &:hover,
+  &:focus {
+    color: $link-hover-color;
+  }
+}

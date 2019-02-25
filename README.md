@@ -21,11 +21,20 @@ But make sure that you have the following installed or configured:
   
 ## Getting started
 
-1. Clone this repo onto your server!
-2. Edit the .env file according to your needs.
-3a. Use 'prepare.sh' to install necessary packages onto your server
-3b. Use 'install.sh' to fire the containers up
-4. Visit `http://proxy.<yourdomain.com>` to verify all containers running and have correct proxying
-5. Visit `http://portainer.<yourdomain.com>` and do all your docker/container stuff
-6. Visit `http://gitea.<yourdomain.com>` and finish install configuration. Most of the settings are already configured correctly and have been taken from the .env file. Only Email resp. Admin have to be configured.
-7. Have fun with playing around
+1. Get the install script with
+   ``` bash
+   wget https://raw.githubusercontent.com/metalbote/team-development-server/master/install.sh 
+   ```
+2. Run to setup the needed packages etc:
+   ``` bash
+   bash install.sh 
+   ```
+3. Follow instructions aka edit the `.env` file according to your needs.
+4. Run to create and start the containers with your config 
+   ``` bash
+   bash start-containers.sh
+   ```
+5. Visit `http://proxy.<yourdomain.com>` to verify all containers running and have correct proxying
+6. Visit `http://portainer.<yourdomain.com>` and do all your docker/container stuff
+7. Visit `http://gitea.<yourdomain.com>` and finish install configuration. Most of the settings are already configured correctly and have been taken from the .env file. Only Email resp. Admin have to be configured.
+8. Have fun with playing around

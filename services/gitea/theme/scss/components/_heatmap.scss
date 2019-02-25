@@ -1,0 +1,23 @@
+.heatmap-color-0 {
+  background-color: lighten($primary, 60%);
+}
+
+.heatmap-color-1 {
+  background-color: lighten($primary, 45%);
+}
+
+.heatmap-color-2 {
+  background-color: lighten($primary, 30%);
+}
+
+.heatmap-color-3 {
+  background-color: lighten($primary, 15%);
+}
+
+.heatmap-color-4 {
+  background-color: $primary;
+}
+
+.heatmap-color-5 {
+  background-color: darken($primary, 15%);
+}

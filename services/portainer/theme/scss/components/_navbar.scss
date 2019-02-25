@@ -1,0 +1,30 @@
+.row.header {
+  background: $navbar-bg;
+  height: 42px;
+  color: $navbar-color;
+
+  .meta {
+    .page {
+      padding-top: 0;
+      line-height: 39px;
+      display: inline-block;
+
+      .user-box {
+        display: none;
+      }
+
+      a[ui-sref="portainer.support"] {
+        display: none;
+      }
+    }
+    .breadcrumb-links {
+      font-size: 17px;
+    }
+  }
+
+
+  a {
+    color: $navbar-color;
+    text-decoration: none;
+  }
+}

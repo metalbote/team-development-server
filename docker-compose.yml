@@ -1,4 +1,4 @@
-version: "2.4"
+version: "3.6"
 services:
 
   #-- Main Infrastructure
@@ -26,27 +26,24 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "./services/traefik/config/traefik.toml:/traefik.toml"
-      # - "./services/traefik/config/acme.json:/acme.json"
-      - "./services/traefik/logs/access_traefik.log:/var/log/access_traefik.log"
-      - "./services/traefik/logs/traefik.log:/var/log/traefik.log"
       - "./services/traefik/certs/:/certs/"
     labels:
       traefik.enable: "true"
       traefik.docker.network: "tds_public"
       traefik.port: "8080"
       traefik.backend: "tds_proxy"
-      traefik.sub.frontend.headers.SSLRedirect: "true"
-      traefik.sub.frontend.entryPoints: "http,https"
-      traefik.sub.frontend.passHostHeader: "true"
-      traefik.sub.frontend.auth.basic: "${TDS_TRAEFIK_DASHBOARD_USER}:${TDS_TRAEFIK_DASHBOARD_HTPASSWD}"
-      traefik.sub.frontend.rule: "Host: proxy.${TDS_DOMAINNAME}"
+      traefik.frontend.entryPoints: "http,https"
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.auth.basic: "${TDS_TRAEFIK_DASHBOARD_USER}:${TDS_TRAEFIK_DASHBOARD_HTPASSWD}"
+      traefik.frontend.rule: "Host: proxy.${TDS_DOMAINNAME}"
 
   tds_portainer:
     env_file: .env
     image: portainer/portainer:latest
     container_name: "tds_portainer"
+    privileged: true
     restart: always
-    command: -H unix:///var/run/docker.sock --logo "${TDS_PORTAINER_LOGO_URL}"
+    command: -H unix:///var/run/docker.sock --template-file /templates.json --logo ${TDS_PORTAINER_LOGO_URL}
     networks:
       private:
         aliases:
@@ -55,17 +52,17 @@ services:
         aliases:
           - portainer.${TDS_DOMAINNAME}
     environment:
-      TZ: "${TDS_PORTAINER_TIMEZONE}"
+      TZ: "${TDS_TIMEZONE}"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - "./services/portainer/data:/data"
-      - "./services/portainer/config/templates/templates.json:/templates.json"
+      - "tds-portainer-data:/data"
+      - "./services/portainer/public/css:/public/css"
+      - "./services/portainer/config/templates/templates-1.20.0.json:/templates.json"
     labels:
       traefik.enable: "true"
       traefik.backend: "portainer"
       traefik.docker.network: "tds_public"
       traefik.port: "9000"
-      traefik.frontend.headers.SSLRedirect: "true"
       traefik.frontend.entryPoints: "http,https"
       traefik.frontend.passHostHeader: "true"
       traefik.frontend.rule: "Host: portainer.${TDS_DOMAINNAME}, www.portainer.${TDS_DOMAINNAME}"
@@ -76,6 +73,8 @@ services:
     container_name: "tds_mailhog"
     restart: always
     command: ["-storage=maildir", "-maildir-path=/maildir"]
+    ports:
+      - ${TDS_MAIL_SMTPPORT}:1025/tcp
     networks:
       private:
         aliases:
@@ -87,13 +86,12 @@ services:
           - mailhog.${TDS_DOMAINNAME}
           - mail.${TDS_DOMAINNAME}
     volumes:
-      - "./services/mailhog/data/mails:/maildir"
+      - "tds-mailhog-data:/maildir"
     labels:
       traefik.enable: "true"
       traefik.backend: "tds_mailhog"
       traefik.docker.network: "tds_public"
       traefik.port: "8025"
-      traefik.frontend.headers.SSLRedirect: "true"
       traefik.frontend.entryPoints: "http,https"
       traefik.frontend.passHostHeader: "true"
       traefik.frontend.rule: "Host: mail.${TDS_DOMAINNAME}, www.mail.${TDS_DOMAINNAME}"
@@ -113,9 +111,11 @@ services:
         aliases:
           - pma.${TDS_DOMAINNAME}
     environment:
-      PMA_ABSOLUTE_URI: "https://pma.${TDS_DOMAINNAME}"
-      PMA_HOSTS: "giteadb,tds_php-censor-db"
+      PMA_ABSOLUTE_URI: "http://pma.${TDS_DOMAINNAME}"
+      PMA_HOST: "tds_giteadb"
+      #PMA_HOSTS: "tds_giteadb"
       PMA_PORT: "3306"
+      #PMA_PORTS: 3306
       PHP_UPLOAD_MAX_FILESIZE: "1G"
       PHP_MAX_INPUT_VARS: "1G"
       MYSQL_ROOT_PASSWORD: ${TDS_MYSQL_ROOT_PASSWORD}
@@ -124,11 +124,9 @@ services:
       traefik.backend: "pma"
       traefik.docker.network: "tds_public"
       traefik.port: "80"
-      traefik.frontend.headers.SSLRedirect: "true"
       traefik.frontend.entryPoints: "http,https"
       traefik.frontend.passHostHeader: "true"
       traefik.frontend.rule: "Host: pma.${TDS_DOMAINNAME}, www.pma.${TDS_DOMAINNAME}"
-
 
   #-- Versioning
 
@@ -146,42 +144,48 @@ services:
       private:
         aliases:
           - gitea.${TDS_DOMAINNAME}
+          - tds_gitea
           - gitea
       public:
         aliases:
-          - git.${TDS_DOMAINNAME}
-    external_links:
-      - tds_proxy
+          - gitea.${TDS_DOMAINNAME}
     environment:
-      APP_NAME: "${TDS_BRANDING_NAME} GIT Versioning Server"
-      RUN_MODE: dev
+      APP_NAME: "${TDS_BRANDING_NAME} - GIT Versioning Server"
+      RUN_MODE: prod
+      PROTOCOL: "http"
+      DOMAIN: gitea.${TDS_DOMAINNAME}
+      ROOT_URL: "http://gitea.${TDS_DOMAINNAME}"
+      HTTP_ADDR: 0.0.0.0
+      HTTP_PORT: 3000
+      DISABLE_SSH: "false"
+      START_SSH_SERVER: "true"
       SSH_DOMAIN: gitea.${TDS_DOMAINNAME}
       SSH_PORT: ${TDS_GITEA_SSHPORT}
-      DISABLE_SSH: "false"
-      HTTP_PORT: 443
-      ROOT_URL: "https://gitea.${TDS_DOMAINNAME}"
+      SSH_LISTEN_PORT: ${TDS_GITEA_SSHPORT}
+      OFFLINE_MODE: "false"
+      ENABLE_GZIP: "true"
+      LANDING_PAGE: explore
       DB_TYPE: mysql
       DB_HOST: tds_giteadb:3306
       DB_NAME: ${TDS_MYSQL_GITEA_DATABASE}
       DB_USER: ${TDS_MYSQL_GITEA_USER}
       DB_PASSWD: ${TDS_MYSQL_GITEA_PASSWORD}
-      INSTALL_LOCK: "FALSE"
-      DISABLE_REGISTRATION: "FALSE"
-      REQUIRE_SIGNIN_VIEW: "TRUE"
+      INSTALL_LOCK: "false"
+      DISABLE_REGISTRATION: "false"
+      REQUIRE_SIGNIN_VIEW: "true"
       USER_UID: ${TDS_GITEA_USER_UID}
       USER_GID: ${TDS_GITEA_USER_GID}
     volumes:
-      - "./services/gitea/data:/data"
-      - "./services/gitea/config/style/css:/data/gitea/public/css"
-      - "./services/gitea/config/style/img:/data/gitea/public/img"
+      - "tds-gitea-data:/data"
+      - "./services/gitea/public:/data/gitea/public"
+      - "./services/gitea/templates:/data/gitea/templates"
       - "${TDS_REPO_DIR}:/data/git/repositories"
     labels:
       traefik.enable: "true"
       traefik.backend: "tds_gitea"
       traefik.docker.network: "tds_public"
       traefik.port: "3000"
-      traefik.frontend.headers.SSLRedirect: "true"
-      traefik.frontend.entryPoints: "http,https"
+      traefik.frontend.entryPoints: "http"
       traefik.frontend.passHostHeader: "true"
       traefik.frontend.rule: "Host: gitea.${TDS_DOMAINNAME}, www.gitea.${TDS_DOMAINNAME}"
 
@@ -197,118 +201,75 @@ services:
       private:
         aliases:
           - tds_giteadb
+          - giteadb
     environment:
       MYSQL_ROOT_PASSWORD: ${TDS_MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${TDS_MYSQL_GITEA_DATABASE}
       MYSQL_USER: ${TDS_MYSQL_GITEA_USER}
       MYSQL_PASSWORD: ${TDS_MYSQL_GITEA_PASSWORD}
     volumes:
-      - "./services/gitea/mysql:/var/lib/mysql"
+      - "tds-giteadb-data:/var/lib/mysql"
     labels:
       traefik.enable: "false"
 
   #-- CD/CI
 
-  tds_php-censor-web:
+  tds_drone:
     env_file: .env
-    image: "phpcensor/php-censor-web:latest"
-    container_name: "tds_php-censor-web"
-    domainname: ${TDS_DOMAINNAME}
+    image: drone/drone:1.0.0-rc.5
+    container_name: "tds_drone"
+    privileged: true
     restart: always
     stop_grace_period: 30s
+    depends_on:
+      - tds_gitea
+    links:
+      - tds_gitea
     networks:
       private:
         aliases:
-          - tds_php-censor-web
+          - drone.${TDS_DOMAINNAME}
+          - tds_drone
       public:
         aliases:
-          - php-censor.${TDS_DOMAINNAME}
-    external_links:
-      - tds_proxy
+          - drone.${TDS_DOMAINNAME}
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./services/drone/public/css:/public/css"
+      - "tds-drone-data:/data"
     environment:
-      - DB_HOST=tds_php-censor-db
-      - DB_USER=${TDS_MYSQL_PHPCENSOR_USER}
-      - DB_PASS=${TDS_MYSQL_PHPCENSOR_PASSWORD}
-      - DB_NAME=${TDS_MYSQL_PHPCENSOR_DATABASE}
-      - BEANSTALK_HOST=tds_php-censor-queue
-      - BEANSTALK_QUEUE_NAME=phpcensor
-      - DB_TYPE=mysql
-      - DB_PORT=3306
-      - SITE_URL=https://php-censor.${TDS_DOMAINNAME}
-      - GITHUB_TOKEN=${TDS_PHPCENSOR_GITHUB_TOKEN}
-      - ADMIN_NAME=${TDS_PHPCENSOR_ADMIN_USER}
-      - ADMIN_EMAIL=${TDS_INFO_EMAIL}
-      - ADMIN_PASSWORD=${TDS_PHPCENSOR_ADMIN_PASSWORD}
+      - DRONE_DEBUG=false
+      - DRONE_GITEA_SERVER=http://gitea.${TDS_DOMAINNAME}:3000
+      - DRONE_GITEA_URL=http://gitea.${TDS_DOMAINNAME}:3000
+      - DRONE_GITEA_PRIVATE_MODE=true
+      - DRONE_GITEA_SKIP_VERIFY=true
+      - DRONE_GIT_ALWAYS_AUTH=true
+      - DRONE_RUNNER_CAPACITY=2
+      - DRONE_RUNNER_NETWORKS=tds_public
+      - DRONE_SERVER_HOST=drone.${TDS_DOMAINNAME}
+      - DRONE_SERVER_PROTO=http
+      - DRONE_NETWORK=tds_public
+      - DRONE_TLS_AUTOCERT=false
+      - DRONE_USER_CREATE=username:${TDS_DRONE_ADMIN_USER},admin:true
+      - DRONE_LOGS_COLOR=true
+      - DRONE_LOGS_DEBUG=true
+      - DRONE_LOGS_PRETTY=true
+      - DRONE_LOGS_NOCOLOR=false
     labels:
       traefik.enable: "true"
-      traefik.backend: "tds_php-censor"
+      traefik.backend: "tds_drone"
       traefik.docker.network: "tds_public"
       traefik.port: "80"
-      traefik.frontend.headers.SSLRedirect: "true"
-      traefik.frontend.entryPoints: "http,https"
+      traefik.frontend.entryPoints: "http"
       traefik.frontend.passHostHeader: "true"
-      traefik.frontend.rule: "Host: php-censor.${TDS_DOMAINNAME}, www.php-censor.${TDS_DOMAINNAME}"
+      traefik.frontend.rule: "Host: drone.${TDS_DOMAINNAME}, www.drone.${TDS_DOMAINNAME}"
 
-  tds_php-censor-db:
-    env_file: .env
-    image: mariadb:latest
-    container_name: "tds_php-censor-db"
-    domainname: ${TDS_DOMAINNAME}
-    hostname: "tds_php-censor-db"
-    restart: always
-    stop_grace_period: 30s
-    networks:
-      private:
-        aliases:
-          - tds_php-censor-db
-    environment:
-      MYSQL_RANDOM_ROOT_PASSWORD: "false"
-      MYSQL_ROOT_PASSWORD: ${TDS_MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${TDS_MYSQL_PHPCENSOR_DATABASE}
-      MYSQL_USER: ${TDS_MYSQL_PHPCENSOR_USER}
-      MYSQL_PASSWORD: ${TDS_MYSQL_PHPCENSOR_PASSWORD}
-    volumes:
-      - "./services/php-censor/mysql:/var/lib/mysql"
-    labels:
-      traefik.enable: "false"
-
-  tds_php-censor-worker:
-    env_file: .env
-    image: "phpcensor/php-censor-worker:latest"
-    container_name: "tds_php-censor-worker"
-    restart: always
-    stop_grace_period: 30s
-    networks:
-      private:
-        aliases:
-          - tds_php-censor-worker
-    environment:
-      - DB_HOST=tds_php-censor-db
-      - DB_USER=${TDS_MYSQL_PHPCENSOR_USER}
-      - DB_PASS=${TDS_MYSQL_PHPCENSOR_PASSWORD}
-      - DB_NAME=${TDS_MYSQL_PHPCENSOR_DATABASE}
-      - BEANSTALK_HOST=tds_php-censor-queue
-      - BEANSTALK_QUEUE_NAME=phpcensor
-      - DB_TYPE=mysql
-      - DB_PORT=3306
-      - SITE_URL=https://php-censor.${TDS_DOMAINNAME}
-      - GITHUB_TOKEN=${TDS_PHPCENSOR_GITHUB_TOKEN}
-      - ADMIN_NAME=${TDS_PHPCENSOR_ADMIN_USER}
-      - ADMIN_EMAIL=${TDS_INFO_EMAIL}
-      - ADMIN_PASSWORD=${TDS_PHPCENSOR_ADMIN_PASSWORD}
-    labels:
-      traefik.enable: "false"
-
-  tds_php-censor-queue:
-    env_file: .env
-    image: "schickling/beanstalkd"
-    container_name: "tds_php-censor-queue"
-    networks:
-      private:
-        aliases:
-          - tds_php-censor-queue
-    labels:
-      traefik.enable: "false"
+volumes:
+  tds-portainer-data:
+  tds-mailhog-data:
+  tds-gitea-data:
+  tds-giteadb-data:
+  tds-drone-data:
 
 networks:
   public:
@@ -316,4 +277,3 @@ networks:
     name: tds_public
   private:
     name: tds_private
-

@@ -2,7 +2,7 @@
 echo "Starting ... " &> ./setup.log
 
 echo -e "\e[32m#### Load environment file aka config...\e[0m" 2>&1 | tee ./setup.log
-source /var/team-development-server/.env >> ./setup.log
+source /usr/local/share/team-development-server/.env >> ./setup.log
 sudo systemctl start docker>> ./setup.log
 
 echo -e "\e[32m#### Create backup and repo directories if not exit...\e[0m" 2>&1 | tee ./setup.log
@@ -21,12 +21,9 @@ sudo openssl pkcs12 -export -name "/var/team-development-server/services/traefik
 sudo openssl x509 -inform PEM -in /var/team-development-server/services/traefik/certs/wildcard.crt -outform DER -out /var/team-development-server/services/traefik/certs/wildcard.der >> ./setup.log
 
 echo -e "\e[32m#### Create empty log files...\e[0m" 2>&1 | tee ./setup.log
-sudo mkdir --p /var/team-development-server/services/traefik/logs >> ./setup.log
-sudo touch /var/team-development-server/services/traefik/logs/access_traefik.log >> ./setup.log
-sudo touch /var/team-development-server/services/traefik/logs/traefik.log >> ./setup.log
 
 echo -e "\e[32m#### Spin up Containers...\e[0m" 2>&1 | tee ./setup.log
 
-sudo docker-compose -f /var/team-development-server/docker-compose.yml up -d
+sudo docker-compose -f /usr/local/share/team-development-server/docker-compose.yml up -d
 
 echo -e "\e[32m#### FINISH ! ##\e[0m" 2>&1 | tee ./setup.log

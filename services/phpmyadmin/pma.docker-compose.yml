@@ -20,7 +20,7 @@ services:
       - tds_giteadb
     environment:
       PMA_ABSOLUTE_URI: "https://pma.${TDS_DOMAINNAME}"
-      PMA_HOSTS: "giteadb"
+      PMA_HOSTS: "tds_giteadb"
       PMA_PORT: "3306"
       PHP_UPLOAD_MAX_FILESIZE: "1G"
       PHP_MAX_INPUT_VARS: "1G"

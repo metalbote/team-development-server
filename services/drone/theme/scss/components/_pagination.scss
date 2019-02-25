@@ -1,0 +1,14 @@
+
+.pagination {
+  > .active {
+    > a,
+    > a:focus,
+    > a:hover,
+    > span,
+    > span:focus,
+    > span:hover {
+      background-color: $pagination-color;
+      border-color: $pagination-color;
+    }
+  }
+}
