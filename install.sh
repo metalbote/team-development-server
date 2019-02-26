@@ -201,7 +201,7 @@ fi
 echo -e "\e[32m#### Finished Installation\e[0m" 2>&1 | tee ./install.log
 
 echo -e "\e[32m--------------------------------------------------\e[0m" 2>&1 | tee ./install.log
-echo -e "\e[32m Please change to \"/var/team-development-server\"\e[0m" 2>&1 | tee ./install.log
+echo -e "\e[32m Please change to \"/usr/local/share/team-development-server\"\e[0m" 2>&1 | tee ./install.log
 echo -e "\e[32m and edit the \".env\" file to your needs.        \e[0m" 2>&1 | tee ./install.log
 echo -e "\e[32m                                                  \e[0m" 2>&1 | tee ./install.log
 echo -e "\e[32m Run \"sudo bash start-containers.sh\" to spin up      \e[0m" 2>&1 | tee ./install.log

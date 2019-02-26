@@ -23,7 +23,7 @@ install:
   - sudo -H bash install.sh
 
 before_script:
-  - cd /var/team-development-server
+  - cd /usr/local/share/team-development-server
 
 script:
   - sudo bash start-containers.sh
