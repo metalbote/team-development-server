@@ -1,0 +1,82 @@
+version: "3.6"
+services:
+
+  tds_aegir:
+    env_file: .env
+    image: aegir/hostmaster
+    hostname: aegir
+    domainname: ${TDS_DOMAINNAME}
+    container_name: "tds_aegir"
+    restart: always
+    stop_grace_period: 30s
+    networks:
+      private:
+        aliases:
+          - aegir.${TDS_DOMAINNAME}
+          - tds_aegir
+      public:
+        aliases:
+          - aegir.${TDS_DOMAINNAME}
+    links:
+      - tds_aegirdb
+    depends_on:
+      - tds_aegirdb
+    external_links:
+      - tds_proxy
+    volumes:
+      - "tds-aegir-data:/data"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${TDS_MYSQL_ROOT_PASSWORD}
+      AEGIR_CLIENT_NAME: admin
+      AEGIR_CLIENT_EMAIL: ${TDS_AEGIR_CLIENT_EMAIL}
+      AEGIR_MAKEFILE: https://raw.githubusercontent.com/opendevshop/devshop/1.x/build-devmaster.make
+      AEGIR_PROFILE: devmaster
+      AEGIR_HOSTMASTER_ROOT: /var/aegir/devmaster
+      AEGIR_UID: 1000
+      AEGIR_VERSION: 7.x-3.x
+      PROVISION_VERSION: 7.x-3.x
+      AEGIR_DATABASE_SERVER: tds_aegirdb
+    labels:
+      traefik.enable: "true"
+      traefik.backend: "tds_aegir"
+      traefik.docker.network: "tds_public"
+      traefik.port: "80"
+      traefik.frontend.entryPoints: "http,https"
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.rule: "HostRegexp:{subdomain:.+}.aegir.entwicklung,www.aegir.entwicklung,aegir.entwicklung"
+
+  tds_aegirdb:
+    env_file: .env
+    image: mariadb:latest
+    container_name: "tds_aegirdb"
+    domainname: ${TDS_DOMAINNAME}
+    hostname: "tds_aegirdb"
+    restart: always
+    stop_grace_period: 30s
+    networks:
+      private:
+        aliases:
+          - tds_aegirdb
+          - aegirdb
+    environment:
+      MYSQL_ROOT_PASSWORD: ${TDS_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: aegir
+      MYSQL_USER: aegir
+      MYSQL_PASSWORD: aegir
+    volumes:
+      - "tds-aegirdb-data:/var/lib/mysql"
+    labels:
+      traefik.enable: "false"
+
+volumes:
+  tds-aegir-data:
+  tds-aegirdb-data:
+
+networks:
+  public:
+    external:
+      name: tds_public
+  private:
+    external:
+      name: tds_private
+
