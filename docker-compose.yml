@@ -139,6 +139,7 @@ services:
     restart: always
     stop_grace_period: 30s
     ports:
+      - "3000:3000/tcp"
       - ${TDS_GITEA_SSHPORT}:22/tcp
     networks:
       private:
@@ -154,7 +155,7 @@ services:
       RUN_MODE: prod
       PROTOCOL: "http"
       DOMAIN: gitea.${TDS_DOMAINNAME}
-      ROOT_URL: "http://gitea.${TDS_DOMAINNAME}"
+      ROOT_URL: "http://gitea.${TDS_DOMAINNAME}:3000"
       HTTP_ADDR: 0.0.0.0
       HTTP_PORT: 3000
       DISABLE_SSH: "false"
