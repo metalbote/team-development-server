@@ -125,6 +125,14 @@
         background-color: $link-hover-color;
       }
     }
+
+
+    &.label,
+    &.labels .label {
+      background-color: $primary !important;
+      border-color: $primary !important;
+      color: #fff!important;
+    }
   }
 
   &.secondary.menu .dropdown.item > .menu,
