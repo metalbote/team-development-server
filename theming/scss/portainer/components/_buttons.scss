@@ -1,0 +1,44 @@
+.btn-group-sm > .btn,
+.btn-sm {
+  border-radius: 0;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: $primary;
+  border-color: darken($primary, 15%);
+
+  &:hover,
+  &:focus{
+    color: #fff;
+    background-color: darken($primary, 15%);
+    border-color: darken($primary, 30%);
+  }
+}
+
+.btn-link {
+  color:  $primary;
+  &:focus,
+  &:hover {
+    color: darken($primary, 30%);
+  }
+}
+.btn-primary.active.focus,
+.btn-primary.active:focus,
+.btn-primary.active:hover,
+.btn-primary:active.focus,
+.btn-primary:active:focus,
+.btn-primary:active:hover,
+.open>.dropdown-toggle.btn-primary.focus,
+.open>.dropdown-toggle.btn-primary:focus,
+.open>.dropdown-toggle.btn-primary:hover {
+  color: #fff;
+  background-color: darken($primary, 15%);
+  border-color: darken($primary, 30%);
+}
+.btn-primary.active, .btn-primary:active, .open>.dropdown-toggle.btn-primary {
+  color: #fff;
+  color: #fff;
+  background-color: darken($primary, 15%);
+  border-color: darken($primary, 30%);
+}

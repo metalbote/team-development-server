@@ -1,0 +1,16 @@
+.button.theme-primary[data-v-2be347ae] {
+  color: #fff;
+  background-color: $primary;
+  border-color: darken($primary, 15%);
+
+  &:focus,
+  &:hover {
+    color: #fff;
+    background-color: darken($primary, 15%);
+    border-color: darken($primary, 30%);
+  }
+}
+.button[data-v-2be347ae] {
+  border-radius: 0;
+}
+
