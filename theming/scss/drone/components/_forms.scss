@@ -7,3 +7,19 @@ input[data-v-d6f4ee38] {
   }
 }
 
+input:checked + label[data-v-3797a116],
+input:checked + label[data-v-89f574aa] {
+  &:before {
+    background: $component-active-color;
+    border-color: transparent;
+  }
+
+}
+
+label[data-v-3797a116],
+label[data-v-89f574aa] {
+  &:hover:before {
+    border-color: $component-active-color;
+  }
+}
+

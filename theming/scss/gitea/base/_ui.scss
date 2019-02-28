@@ -108,6 +108,11 @@
         }
       }
     }
+
+    &.button,
+    &.buttons .button {
+      border-radius: 0;
+    }
   }
 
   &.blue {
@@ -131,7 +136,7 @@
     &.labels .label {
       background-color: $primary !important;
       border-color: $primary !important;
-      color: #fff!important;
+      color: #fff !important;
     }
   }
 
@@ -139,6 +144,15 @@
   &.text.menu .dropdown.item > .menu {
     border-radius: 0;
     margin-top: 0;
+  }
+
+
+  &.tabular.menu .active.item {
+    border-radius: 0 !important;
+  }
+
+  &.label {
+    border-radius: 0;
   }
 }
 

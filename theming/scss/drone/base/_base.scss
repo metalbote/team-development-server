@@ -3,6 +3,7 @@ body {
   font-family: $font-family-base;
 }
 
+.link,
 a {
   color: $link-color;
   text-decoration: none;
@@ -22,3 +23,4 @@ main[data-v-1464488c] {
   background: #fff;
   padding-top: 42px;
 }
+
