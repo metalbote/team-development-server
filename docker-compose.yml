@@ -32,6 +32,7 @@ services:
       traefik.docker.network: "tds_public"
       traefik.port: "8080"
       traefik.backend: "tds_proxy"
+      traefik.frontend.priority: 10
       traefik.frontend.entryPoints: "http,https"
       traefik.frontend.passHostHeader: "true"
       traefik.frontend.auth.basic: "${TDS_TRAEFIK_DASHBOARD_USER}:${TDS_TRAEFIK_DASHBOARD_HTPASSWD}"
@@ -56,13 +57,13 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "tds-portainer-data:/data"
-      - "./services/portainer/public/css:/public/css"
       - "./services/portainer/config/templates/templates-1.20.0.json:/templates.json"
     labels:
       traefik.enable: "true"
       traefik.backend: "portainer"
       traefik.docker.network: "tds_public"
       traefik.port: "9000"
+      traefik.frontend.priority: 10
       traefik.frontend.entryPoints: "http,https"
       traefik.frontend.passHostHeader: "true"
       traefik.frontend.rule: "Host: portainer.${TDS_DOMAINNAME}, www.portainer.${TDS_DOMAINNAME}"
@@ -92,6 +93,7 @@ services:
       traefik.backend: "tds_mailhog"
       traefik.docker.network: "tds_public"
       traefik.port: "8025"
+      traefik.frontend.priority: 10
       traefik.frontend.entryPoints: "http,https"
       traefik.frontend.passHostHeader: "true"
       traefik.frontend.rule: "Host: mail.${TDS_DOMAINNAME}, www.mail.${TDS_DOMAINNAME}"
@@ -183,12 +185,22 @@ services:
       - "${TDS_REPO_DIR}:/data/git/repositories"
     labels:
       traefik.enable: "true"
-      traefik.backend: "tds_gitea"
       traefik.docker.network: "tds_public"
-      traefik.port: "3000"
-      traefik.frontend.entryPoints: "http"
-      traefik.frontend.passHostHeader: "true"
-      traefik.frontend.rule: "Host: gitea.${TDS_DOMAINNAME}, www.gitea.${TDS_DOMAINNAME}"
+      traefik.gitea.backend: "tds_gitea"
+      traefik.gitea.port: "3000"
+      traefik.gitea.frontend.entryPoints: "http"
+      traefik.gitea.frontend.passHostHeader: "true"
+      traefik.gitea.frontend.rule: "Host: gitea.${TDS_DOMAINNAME}, www.gitea.${TDS_DOMAINNAME}"
+      traefik.drone.backend: "tds_gitea"
+      traefik.drone.port: "3000"
+      traefik.drone.frontend.entryPoints: "http"
+      traefik.drone.frontend.passHostHeader: "true"
+      traefik.drone.frontend.rule: "Host:www.drone.${TDS_DOMAINNAME}, drone.${TDS_DOMAINNAME}; Path:/css/app.39ba2f4d.css"
+      traefik.portainer.backend: "tds_gitea"
+      traefik.portainer.port: "3000"
+      traefik.portainer.frontend.entryPoints: "http"
+      traefik.portainer.frontend.passHostHeader: "true"
+      traefik.portainer.frontend.rule: "Host:www.portainer.${TDS_DOMAINNAME}, portainer.${TDS_DOMAINNAME}; Path:/css/app.069dd38e.css"
 
   tds_giteadb:
     env_file: .env
@@ -261,6 +273,7 @@ services:
       traefik.backend: "tds_drone"
       traefik.docker.network: "tds_public"
       traefik.port: "80"
+      traefik.frontend.priority: 10
       traefik.frontend.entryPoints: "http"
       traefik.frontend.passHostHeader: "true"
       traefik.frontend.rule: "Host: drone.${TDS_DOMAINNAME}, www.drone.${TDS_DOMAINNAME}"
