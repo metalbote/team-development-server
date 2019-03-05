@@ -68,6 +68,57 @@ services:
       traefik.frontend.passHostHeader: "true"
       traefik.frontend.rule: "Host: portainer.${TDS_DOMAINNAME}, www.portainer.${TDS_DOMAINNAME}"
 
+  tds_registry:
+    env_file: .env
+    image: registry:latest
+    hostname: registry
+    domainname: ${TDS_DOMAINNAME}
+    container_name: "tds_registry"
+    restart: always
+    stop_grace_period: 30s
+    ports:
+      - 5000:5000/tcp
+    networks:
+      private:
+        aliases:
+          - registry.${TDS_DOMAINNAME}
+          - tds_registry
+      public:
+        aliases:
+          - registry.${TDS_DOMAINNAME}
+    volumes:
+      - "tds-registry-data:/data"
+    labels:
+      traefik.enable: "false"
+
+  tds_registry_ui:
+    env_file: .env
+    image: konradkleine/docker-registry-frontend
+    hostname: registry-ui
+    domainname: ${TDS_DOMAINNAME}
+    container_name: "tds_registry_ui"
+    restart: always
+    stop_grace_period: 30s
+    networks:
+      private:
+        aliases:
+          - registry-ui.${TDS_DOMAINNAME}
+          - tds_registry_ui
+      public:
+        aliases:
+          - registry-ui.${TDS_DOMAINNAME}
+    environment:
+      ENV_DOCKER_REGISTRY_HOST: tds_registry
+      ENV_DOCKER_REGISTRY_PORT: 5000
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "tds_public"
+      traefik.backend: "tds_registry_ui"
+      traefik.port: "80"
+      traefik.frontend.entryPoints: "http,https"
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.rule: "Host: registry.${TDS_DOMAINNAME}, www.registry.${TDS_DOMAINNAME}"
+
   tds_mailhog:
     env_file: .env
     image: mailhog/mailhog:latest
@@ -114,10 +165,10 @@ services:
           - pma.${TDS_DOMAINNAME}
     environment:
       PMA_ABSOLUTE_URI: "http://pma.${TDS_DOMAINNAME}"
-      PMA_HOST: "tds_giteadb"
-      #PMA_HOSTS: "tds_giteadb"
-      PMA_PORT: "3306"
-      #PMA_PORTS: 3306
+      #PMA_HOST: "tds_giteadb"
+      PMA_HOSTS: "tds_giteadb, tds_aegirdevshopdb, tds_dashboarddb"
+      #PMA_PORT: "3306"
+     #PMA_PORTS: 3306
       PHP_UPLOAD_MAX_FILESIZE: "1G"
       PHP_MAX_INPUT_VARS: "1G"
       MYSQL_ROOT_PASSWORD: ${TDS_MYSQL_ROOT_PASSWORD}
@@ -280,6 +331,7 @@ services:
 
 volumes:
   tds-portainer-data:
+  tds-registry-data:
   tds-mailhog-data:
   tds-gitea-data:
   tds-giteadb-data:

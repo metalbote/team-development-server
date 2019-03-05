@@ -1,0 +1,70 @@
+version: "3.6"
+services:
+
+  tds_registry:
+    env_file: .env
+    image: registry:latest
+    hostname: docker
+    domainname: ${TDS_DOMAINNAME}
+    container_name: "tds_registry"
+    restart: always
+    stop_grace_period: 30s
+    ports:
+      - 5000:5000/tcp
+    networks:
+      private:
+        aliases:
+          - docker.${TDS_DOMAINNAME}
+          - tds_registry
+      public:
+        aliases:
+          - docker.${TDS_DOMAINNAME}
+    external_links:
+      - tds_proxy
+    volumes:
+      - "tds-registry-data:/data"
+    labels:
+      traefik.enable: "false"
+
+  tds_registry_ui:
+    env_file: .env
+    image: konradkleine/docker-registry-frontend
+    hostname: dockerui
+    domainname: ${TDS_DOMAINNAME}
+    container_name: "tds_registry_ui"
+    restart: always
+    stop_grace_period: 30s
+    networks:
+      private:
+        aliases:
+          - dockerui.${TDS_DOMAINNAME}
+          - tds_registry_ui
+      public:
+        aliases:
+          - dockerui.${TDS_DOMAINNAME}
+    external_links:
+      - tds_proxy
+    environment:
+      ENV_DOCKER_REGISTRY_HOST: docker.entwicklung
+      ENV_DOCKER_REGISTRY_PORT: 5000
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "tds_public"
+      traefik.backend: "tds_registry_ui"
+      traefik.port: "80"
+      traefik.frontend.entryPoints: "http,https"
+      traefik.frontend.passHostHeader: "true"
+      traefik.frontend.rule: "Host: dockerui.${TDS_DOMAINNAME}, www.dockerui.${TDS_DOMAINNAME}"
+
+
+
+volumes:
+  tds-registry-data:
+
+networks:
+  public:
+    external:
+      name: tds_public
+  private:
+    external:
+      name: tds_private
