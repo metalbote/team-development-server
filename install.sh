@@ -57,7 +57,7 @@ if [ $OS = "centos" ]; then
   sudo yum install -y epel-release >> ./install.log
   sudo yum update -y >> ./install.log
   sudo yum upgrade -y >> ./install.log
-  sudo yum install -y setroubleshoot-server sos mc curl net-tools wget yum-utils vim git samba-client samba-common cifs-utils httpd-tools duplicity >> ./install.log
+  sudo yum install -y setroubleshoot-server sos mc bash-completion-extras bash-completion curl net-tools wget yum-utils vim git samba-client samba-common cifs-utils httpd-tools duplicity >> ./install.log
 elif [  $OS = "ubuntu" ]; then
   sudo apt-get install -y mc openssh-server curl net-tools wget vim git smbclient cifs-utils samba-common apache2-utils >> ./install.log
 fi
