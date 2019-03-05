@@ -9,16 +9,16 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="413.38788"
-   height="142.5858"
-   viewBox="0 0 109.37553 37.725824"
+   width="386.71365"
+   height="142.48393"
+   viewBox="0 0 102.31798 37.698872"
    version="1.1"
    id="svg8"
    inkscape:version="0.92.3 (2405546, 2018-03-11)"
-   sodipodi:docname="itbsr.svg"
-   inkscape:export-filename="D:\Users\joerg\Projekte\docker\team-development-server\theming\img\itbsr.png"
-   inkscape:export-xdpi="36"
-   inkscape:export-ydpi="36">
+   sodipodi:docname="logo.svg"
+   inkscape:export-filename="D:\Users\joerg\Projekte\docker\team-development-server\theming\img\logo.png"
+   inkscape:export-xdpi="145.47198"
+   inkscape:export-ydpi="145.47198">
   <defs
      id="defs2">
     <clipPath
@@ -39,11 +39,11 @@
      pagecolor="#ffffff"
      bordercolor="#666666"
      borderopacity="1.0"
-     inkscape:pageopacity="0.0"
+     inkscape:pageopacity="1"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4"
-     inkscape:cx="23.846601"
-     inkscape:cy="-81.893386"
+     inkscape:zoom="1.979899"
+     inkscape:cx="116.20381"
+     inkscape:cy="0.52787117"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -54,9 +54,11 @@
      inkscape:window-maximized="1"
      fit-margin-top="0"
      fit-margin-left="0"
-     fit-margin-right="0"
+     fit-margin-right="10"
      fit-margin-bottom="0"
-     units="px" />
+     units="px"
+     inkscape:measure-start="142.788,142.484"
+     inkscape:measure-end="154.286,142.857" />
   <metadata
      id="metadata5">
     <rdf:RDF>
@@ -65,7 +67,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -73,7 +75,7 @@
      inkscape:label="Ebene 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-7.0257454,-4.734161)">
+     transform="translate(-7.0257454,-4.7611135)">
     <flowRoot
        xml:space="preserve"
        id="flowRoot3701"
@@ -85,10 +87,10 @@
            x="377.95276"
            y="744.56696" /></flowRegion><flowPara
          id="flowPara3707" /></flowRoot>    <g
-       id="g888">
+       id="g4682">
       <g
          clip-path="none"
-         transform="matrix(0.99999699,0,0,0.99999699,2.0788842,-254.56608)"
+         transform="matrix(0.85963127,0,0,0.85963127,8.4224958,-215.5098)"
          id="g3771">
         <flowRoot
            xml:space="preserve"

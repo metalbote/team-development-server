@@ -1,0 +1,100 @@
+// Variables
+//
+// Variables should follow the `$component-state-property-size` formula for
+// consistent naming. Ex: $nav-link-disabled-color and $modal-content-box-shadow-xs.
+
+// Color system
+
+
+$primary: #588c2e; //#ff7300;
+$secondary:#2a3d45; //#a9002c;
+$success: #28a745;
+$info: #17a2b8;
+$warning: #ffc107;
+$danger: #dc3545;
+$light: #fff;
+$dark: #333;
+
+$theme-colors: ();
+// stylelint-disable-next-line scss/dollar-variable-default
+$theme-colors: map-merge(
+    (
+      "primary": $primary,
+      "secondary": $secondary,
+      "success": $success,
+      "info": $info,
+      "warning": $warning,
+      "danger": $danger,
+      "light": $light,
+      "dark": $dark
+    ),
+    $theme-colors
+);
+
+// Set a specific jump point for requesting color jumps
+$theme-color-interval: 8%;
+
+// Body
+//
+// Settings for the `<body>` element.
+
+$body-bg: $primary;
+
+// Links
+//
+// Style anchor elements.
+
+$link-color: $primary;
+$link-hover-color: darken($link-color, 15%);
+
+// Components
+//
+// Define common padding and border radius sizes and more.
+
+$component-active-color: $primary;
+$component-active-bg: $primary;
+
+// Typography
+//
+// Font, line-height, and color for body text, headings, and more.
+
+$font-family-base: "Roboto";
+
+// Buttons + Forms
+//
+// Shared variables that are reassigned to `$input-` and `$btn-` specific variables.
+
+$btn-color: lighten($component-active-bg, 15%);
+$btn-box-shadow-color: lighten($component-active-bg, 15%);
+
+// Forms
+
+$input-focus-border-color: lighten($component-active-bg, 25%);
+
+$custom-control-indicator-checked-color: $component-active-color;
+$custom-control-indicator-checked-bg: $component-active-bg;
+$custom-control-indicator-checked-border-color: $custom-control-indicator-checked-bg;
+
+// Navbar
+$navbar-bg: $secondary;
+$navbar-color: $light;
+$navbar-brand-bg: $light;
+$navbar-brand-color: $secondary;
+$navbar-brand-logo-small: url('http://gitea.entwicklung/img/logo-small.png');
+$navbar-link-color: $navbar-color;
+$navbar-link-hover-color: $navbar-link-color;
+$navbar-link-hover-bg: darken($link-color, 15%);
+$navbar-toggler-icon-color: $navbar-color;
+$navbar-toggler-icon-hover-bg: $navbar-link-hover-bg;
+
+// Dropdowns
+//
+// Dropdown menu container and contents.
+$dropdown-link-hover-color: $navbar-link-color;
+$dropdown-link-hover-bg: $navbar-link-hover-bg;
+
+
+// Pagination
+
+$pagination-color: $link-color;
+

@@ -1,0 +1,26 @@
+body {
+  background: $body-bg;
+  font-family: $font-family-base;
+}
+
+.link,
+a {
+  color: $link-color;
+  text-decoration: none;
+
+  &:hover,
+  &:focus {
+    color: $link-hover-color;
+  }
+}
+
+
+div.container[data-v-6f79020d] {
+  background: $body-bg;
+}
+
+main[data-v-1464488c] {
+  background: #fff;
+  padding-top: 42px;
+}
+

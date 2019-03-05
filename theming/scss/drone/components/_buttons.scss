@@ -1,0 +1,72 @@
+.button {
+  &[data-v-2be347ae] {
+    border-radius: 0;
+  }
+
+  &.bordered[data-v-2be347ae] {
+    border: 1px solid $primary;
+
+    &:focus,
+    &:hover {
+      border-color: darken($primary, 30%);
+    }
+
+  }
+
+  &.theme-primary {
+    &[data-v-2be347ae] {
+      color: #fff;
+      background-color: $primary;
+      border-color: darken($primary, 15%);
+
+      &:focus,
+      &:hover {
+        color: #fff;
+        background-color: darken($primary, 15%);
+        border-color: darken($primary, 30%);
+      }
+    }
+
+    &.outline[data-v-2be347ae] {
+      color: $primary;
+      background-color: #fff;
+      border-color: $primary;
+
+      &:focus,
+      &:hover {
+        color: #fff;
+        background-color: darken($primary, 15%);
+        border-color: darken($primary, 30%);
+      }
+    }
+
+    &.outline.more-button[data-v-1feae894] {
+      &:focus,
+      &:hover {
+        color: $primary;
+
+        svg[data-v-1feae894] {
+          color: $primary;
+        }
+        span[data-v-1feae894] {
+          border-color:  $primary;
+        }
+      }
+    }
+
+  }
+
+  &.theme-default.outline[data-v-2be347ae] {
+    color: $primary;
+
+    &:focus,
+    &:hover {
+      color: darken($primary, 30%);
+      background-color: transparent;
+    }
+
+  }
+
+
+}
+

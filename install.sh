@@ -57,7 +57,7 @@ if [ $OS = "centos" ]; then
   sudo yum install -y epel-release >> ./install.log
   sudo yum update -y >> ./install.log
   sudo yum upgrade -y >> ./install.log
-  sudo yum install -y setroubleshoot-server sos mc curl net-tools wget yum-utils vim git samba-client samba-common cifs-utils httpd-tools duplicity >> ./install.log
+  sudo yum install -y setroubleshoot-server sos mc bash-completion-extras bash-completion curl net-tools wget yum-utils vim git samba-client samba-common cifs-utils httpd-tools duplicity >> ./install.log
 elif [  $OS = "ubuntu" ]; then
   sudo apt-get install -y mc openssh-server curl net-tools wget vim git smbclient cifs-utils samba-common apache2-utils >> ./install.log
 fi
@@ -197,6 +197,11 @@ fi
   echo -e "\e[32m#### Clone Team Development Server and setup containers\e[0m" 2>&1 | tee ./install.log
   sudo git clone --depth=1 -q https://github.com/metalbote/team-development-server.git /usr/local/share/team-development-server >> ../install.log
 
+#Create backup cron job
+croncmd="sh /usr/local/share/team-development-server/tds-backup.sh > /var/backup/log/cron.log 2>&1"
+cronjob="59 * * * * $croncmd"
+
+crontab -l | fgrep -i -v "$command" | { cat; echo "$job"; } | crontab -l
 
 echo -e "\e[32m#### Finished Installation\e[0m" 2>&1 | tee ./install.log
 

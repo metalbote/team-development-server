@@ -1,0 +1,23 @@
+.logo[data-v-531726e8] {
+  width: auto;
+  height: 42px;
+  margin-right: 10px;
+  background:  $navbar-brand-logo-small no-repeat;
+
+  a.router-link-active {
+    padding-left: 42px;
+    display: block;
+    line-height: 42px;
+    &::after {
+      content: 'Drone CI';
+      color: white;
+      line-height: 42px;
+      padding: 0 10px;
+      font-size: 17px;
+    }
+  }
+
+  svg {
+    display: none;
+  }
+}
